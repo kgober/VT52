@@ -1,0 +1,20 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 9.00
+# Visual Studio 2005
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VT52", "VT52.csproj", "{9907ED45-95EE-4CE3-965A-5AA33ECDE3DD}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{9907ED45-95EE-4CE3-965A-5AA33ECDE3DD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9907ED45-95EE-4CE3-965A-5AA33ECDE3DD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9907ED45-95EE-4CE3-965A-5AA33ECDE3DD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9907ED45-95EE-4CE3-965A-5AA33ECDE3DD}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
