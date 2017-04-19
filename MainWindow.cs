@@ -57,12 +57,14 @@ namespace Emulator
 
         private void MainWindow_Load(Object sender, EventArgs e)
         {
+            Int32 dx = this.Width - TerminalImage.Width;
+            Int32 dy = this.Height - TerminalImage.Height;
             mTerminal = new Terminal.VT52();
             TerminalImage.Image = mTerminal.Bitmap;
             TerminalImage.Width = mTerminal.Bitmap.Width;
             TerminalImage.Height = mTerminal.Bitmap.Height;
-            this.Width = TerminalImage.Width + 40;
-            this.Height = TerminalImage.Height + 62;
+            this.Width = TerminalImage.Width + dx;
+            this.Height = TerminalImage.Height + dy;
             this.MinimumSize = new System.Drawing.Size(this.Width, this.Height);
             mRefreshTimer = new Timer();
             mRefreshTimer.Tick += new EventHandler(MainWindow_RefreshTimer);

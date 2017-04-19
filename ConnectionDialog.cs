@@ -99,6 +99,7 @@ namespace Emulator
 
             String s = comboBox1.Text;
             String[] S = SerialPort.GetPortNames();
+            if ((S == null) || (S.Length == 0)) return;
             Array.Sort<String>(S);
             comboBox1.Items.Clear();
             comboBox1.Items.AddRange(S);
