@@ -476,7 +476,7 @@ namespace Emulator
                 Send((Byte)c);
             }
 
-            private void AskSettings()
+            public void AskSettings()
             {
                 if (dlgSettings == null) dlgSettings = new SettingsDialog();
                 dlgSettings.ShowDialog();
@@ -525,7 +525,7 @@ namespace Emulator
                 SetTransmitParity(dlgSettings.Parity);
             }
 
-            private void AskConnection()
+            public void AskConnection()
             {
                 if (dlgConnection == null) dlgConnection = new ConnectionDialog();
                 dlgConnection.ShowDialog();
@@ -538,13 +538,13 @@ namespace Emulator
                 }
                 else if ((dlgConnection.IOAdapter == typeof(IO.Serial)) && !(mUART.IO is IO.Serial))
                 {
-                    mUART.IO = new IO.Serial(dlgConnection.Option);
+                    mUART.IO = new IO.Serial(dlgConnection.Options);
                     mCaption = String.Concat("VT52 - ", mUART.IO.ConnectionString);
                     mCaptionDirty = true;
                 }
                 else if ((dlgConnection.IOAdapter == typeof(IO.Telnet)) && !(mUART.IO is IO.Telnet))
                 {
-                    mUART.IO = new IO.Telnet(dlgConnection.Option);
+                    mUART.IO = new IO.Telnet(dlgConnection.Options);
                     mCaption = String.Concat("VT52 - ", mUART.IO.ConnectionString);
                     mCaptionDirty = true;
                 }
@@ -577,14 +577,14 @@ namespace Emulator
                 set { mDisplay.BitmapDirty = value; }
             }
 
-            // called by main UI thread via KeyDown()
-            private void LowerBrightness()
+            // called by main UI thread via KeyDown() or system menu
+            public void LowerBrightness()
             {
                 mDisplay.ChangeBrightness(-1);
             }
 
-            // called by main UI thread via KeyDown()
-            private void RaiseBrightness()
+            // called by main UI thread via KeyDown() or system menu
+            public void RaiseBrightness()
             {
                 mDisplay.ChangeBrightness(1);
             }

@@ -36,6 +36,19 @@ namespace Emulator
             InitializeComponent();
         }
 
+        // hooking OnHandleCreated is needed for system menu
+        protected override void OnHandleCreated(EventArgs e)
+        {
+            base.OnHandleCreated(e);
+            IntPtr hMenu = Win32.GetSystemMenu(this.Handle, false);
+            Win32.AppendMenu(hMenu, MF.SEPARATOR, (UIntPtr)0);
+            Win32.AppendMenu(hMenu, MF.STRING, (UIntPtr)5, "Settings (F5)");
+            Win32.AppendMenu(hMenu, MF.STRING, (UIntPtr)6, "Connection (F6)");
+            Win32.AppendMenu(hMenu, MF.STRING, (UIntPtr)11, "Brightness - (F11)");
+            Win32.AppendMenu(hMenu, MF.STRING, (UIntPtr)12, "Brightness + (F12)");
+            Win32.AppendMenu(hMenu, MF.STRING, (UIntPtr)99, "About VT52");
+        }
+
         // hooking WndProc is needed to differentiate Enter from Keypad Enter
         protected override void WndProc(ref Message m)
         {
@@ -44,6 +57,45 @@ namespace Emulator
                 case 0x0100:    // WM_KEYDOWN
                 case 0x0101:    // WM_KEYUP
                     if (!mTerminal.KeyEvent(m.Msg, m.WParam, m.LParam)) base.WndProc(ref m);
+                    break;
+                case 0x0112:    // WM_SYSCOMMAND
+                    switch ((Int32)m.WParam)
+                    {
+                        case 5: // Settings (F5)
+                            if (mTerminal != null)
+                            {
+                                Terminal.VT52 vt = mTerminal as Terminal.VT52;
+                                vt.AskSettings();
+                            }
+                            break;
+                        case 6: // Connection (F6)
+                            if (mTerminal != null)
+                            {
+                                Terminal.VT52 vt = mTerminal as Terminal.VT52;
+                                vt.AskConnection();
+                            }
+                            break;
+                        case 11: // Brightness - (F11)
+                            if (mTerminal != null)
+                            {
+                                Terminal.VT52 vt = mTerminal as Terminal.VT52;
+                                vt.LowerBrightness();
+                            }
+                            break;
+                        case 12: // Brightness + (F12)
+                            if (mTerminal != null)
+                            {
+                                Terminal.VT52 vt = mTerminal as Terminal.VT52;
+                                vt.RaiseBrightness();
+                            }
+                            break;
+                        case 99: // About VT52
+                            MessageBox.Show("VT52\r\nCopyright © Kenneth Gober 2016, 2017", "About VT52");
+                            break;
+                        default:
+                            base.WndProc(ref m);
+                            break;
+                    }
                     break;
                 case 0x0102:    // WM_CHAR
                 case 0x0104:    // WM_SYSKEYDOWN

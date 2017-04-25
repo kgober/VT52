@@ -31,8 +31,7 @@ are actually using a much faster connection such as Ethernet).
 Connections:
 
 The emulator can be connected to a target system using your computer's serial port.  The serial
-port speed must be set to 19200 bps, 8 data bits, 1 stop bit, no parity.  In a future release the
-serial port settings will be configurable.
+port settings (baud rate, data bits, parity, and stop bits) are configurable.
 
 The emulator can also be connected to a target system over the network, using telnet.  By default
 telnet connections use port 23, but connections to other ports can be specified by adding a colon

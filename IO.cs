@@ -30,7 +30,6 @@ namespace Emulator
 
     // Future Improvements / To Do
     // don't read bytes from telnet unless ready to display (allows AO to work)
-    // serial port settings (baud rate, parity, flow control, etc.)
     // serial port buffering (allow high speed input to be displayed at a lower rate)
     // allow telnet options to be selectively enabled/disabled
     // simulate connection to a terminal server
@@ -166,17 +165,24 @@ namespace Emulator
             private String mPortName;
             private SerialPort mPort;
 
-            public Serial(String portName)
+            public Serial(String options)
             {
-                mPortName = portName;
-                mPort = new SerialPort(portName);
-                mPort.BaudRate = 19200;
-                mPort.DataBits = 8;
-                mPort.Parity = Parity.None;
-                mPort.StopBits = StopBits.One;
+                String[] O = options.Split('|');
+                mPortName = O[0];
+                mPort = new SerialPort(O[0]);
+                mPort.BaudRate = Int32.Parse(O[1]);
+                mPort.DataBits = Int32.Parse(O[2]);
+                if (String.Compare(O[3], "None", StringComparison.OrdinalIgnoreCase) == 0) mPort.Parity = Parity.None;
+                else if (String.Compare(O[3], "Even", StringComparison.OrdinalIgnoreCase) == 0) mPort.Parity = Parity.Even;
+                else if (String.Compare(O[3], "Odd", StringComparison.OrdinalIgnoreCase) == 0) mPort.Parity = Parity.Odd;
+                else if (String.Compare(O[3], "Mark", StringComparison.OrdinalIgnoreCase) == 0) mPort.Parity = Parity.Mark;
+                else if (String.Compare(O[3], "Space", StringComparison.OrdinalIgnoreCase) == 0) mPort.Parity = Parity.Space;
+                if (String.Compare(O[4], "1") == 0) mPort.StopBits = StopBits.One;
+                else if (String.Compare(O[4], "1.5") == 0) mPort.StopBits = StopBits.OnePointFive;
+                else if (String.Compare(O[4], "2") == 0) mPort.StopBits = StopBits.Two;
                 mPort.DtrEnable = true;
                 mPort.RtsEnable = true;
-                mPort.Handshake = Handshake.None;
+                mPort.Handshake = (String.Compare(O[5], "RTSCTS", StringComparison.OrdinalIgnoreCase) == 0) ? Handshake.RequestToSend : Handshake.None;
                 mPort.ReceivedBytesThreshold = 1;
                 mPort.DataReceived += DataReceived;
                 mPort.Open();
@@ -196,7 +202,16 @@ namespace Emulator
 
             public override String ConnectionString
             {
-                get { return String.Format("{0} {1:D0}-{2:D0}-{3}-{4:D0}", mPortName, mPort.BaudRate, 8, 'N', 1); }
+                get {
+                    String s = "";
+                    switch (mPort.StopBits)
+                    {
+                        case StopBits.One: s = "1"; break;
+                        case StopBits.OnePointFive: s = "1.5"; break;
+                        case StopBits.Two: s = "2"; break;
+                    }
+                    return String.Format("{0} {1:D0}-{2:D0}-{3}-{4:D0}", mPortName, mPort.BaudRate, mPort.DataBits, mPort.Parity.ToString()[0], s);
+                }
             }
 
             // serial port must be preloaded before sending begins (don't double UART latency)
@@ -263,10 +278,11 @@ namespace Emulator
             private Emulator.Telnet mTelnet;
             private Boolean mBreak;
 
-            public Telnet(String destination)
+            public Telnet(String options)
             {
-                mDestination = destination;
-                mTelnet = new Emulator.Telnet(destination);
+                String[] O = options.Split('|');
+                mDestination = O[0];
+                mTelnet = new Emulator.Telnet(mDestination);
                 mTelnet.Receive += Receive;
             }
 

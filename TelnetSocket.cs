@@ -33,7 +33,6 @@ namespace Emulator
     // tokens (undoubling IACs as needed) to be consumed by the top half.
 
     // Future Improvements / To Do
-    // improve detection/handling of disconnects
     // would copying bytes during tokenization simplify logic?
     // would allowing tokenizer to read/block on incomplete tokens simplify logic?
     // move send-buffer flush out of read loop (enables reads to block)
@@ -142,8 +141,23 @@ namespace Emulator
             {
                 if (mSendPtr != 0)
                 {
-                    mSocket.Send(mSendBuf, 0, mSendPtr, flags);
-                    mSendPtr = 0;
+                    try
+                    {
+                        mSocket.Send(mSendBuf, 0, mSendPtr, flags);
+                        mSendPtr = 0;
+                    }
+                    catch (Exception ex)
+                    {
+#if DEBUG
+                        String buf = "Flush() Exception:\r\n";
+                        while (ex != null)
+                        {
+                            buf = String.Concat(buf, "\r\n", ex.Message, " [", ex.Source, "]\r\n", ex.StackTrace);
+                            ex = ex.InnerException;
+                        }
+                        Log.WriteLine(buf);
+#endif
+                    }
                 }
             }
         }
@@ -219,8 +233,23 @@ namespace Emulator
                 {
                     while (p < mSendBuf.Length) mSendBuf[p++] = buffer[offset++];
                     count -= (p - mSendPtr);
-                    mSocket.Send(mSendBuf, 0, p, SocketFlags.None);
-                    mSendPtr = p = 0;
+                    try
+                    {
+                        mSocket.Send(mSendBuf, 0, p, SocketFlags.None);
+                        mSendPtr = p = 0;
+                    }
+                    catch (Exception ex)
+                    {
+#if DEBUG
+                        String buf = "_Send() Exception:\r\n";
+                        while (ex != null)
+                        {
+                            buf = String.Concat(buf, "\r\n", ex.Message, " [", ex.Source, "]\r\n", ex.StackTrace);
+                            ex = ex.InnerException;
+                        }
+                        Log.WriteLine(buf);
+#endif
+                    }
                 }
                 while (count-- > 0) mSendBuf[p++] = buffer[offset++];
                 mSendPtr = p;

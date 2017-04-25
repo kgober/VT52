@@ -24,6 +24,115 @@ using System.Runtime.InteropServices;
 
 namespace Emulator
 {
+    [Flags]
+    public enum BAUD : int
+    {
+        _075 = 0x00000001,
+        _110 = 0x00000002,
+        _134_5 = 0x00000004,
+        _150 = 0x00000008,
+        _300 = 0x00000010,
+        _600 = 0x00000020,
+        _1200 = 0x00000040,
+        _1800 = 0x00000080,
+        _2400 = 0x00000100,
+        _4800 = 0x00000200,
+        _7200 = 0x00000400,
+        _9600 = 0x00000800,
+        _14400 = 0x00001000,
+        _19200 = 0x00002000,
+        _38400 = 0x00004000,
+        _56K = 0x00008000,
+        _128K = 0x00010000,
+        _115200 = 0x00020000,
+        _57600 = 0x00040000,
+        USER = 0x10000000,
+    }
+
+    [Flags]
+    public enum DATABITS : ushort
+    {
+        _5 = 0x0001,
+        _6 = 0x0002,
+        _7 = 0x0004,
+        _8 = 0x0008,
+        _16 = 0x0010,
+        _16X = 0x0020,
+    }
+
+    [Flags]
+    public enum KEYEVENTF : int
+    {
+        EXTENDEDKEY = 0x0001,
+        KEYUP = 0x0002,
+    }
+
+    public enum MAPVK : uint
+    {
+        VK_TO_VSC = 0,
+        VSC_TO_VK = 1,
+        VK_TO_CHAR = 2,
+        VSC_TO_VK_EX = 3,
+    }
+
+    [Flags]
+    public enum MF : uint
+    {
+        STRING = 0x00000000,
+        ENABLED = 0x00000000,
+        GRAYED = 0x00000001,
+        DISABLED = 0x00000002,
+        BITMAP = 0x00000004,
+        CHECKED = 0x00000008,
+        POPUP = 0x00000010,
+        MENUBARBREAK = 0x00000020,
+        MENUBREAK = 0x00000040,
+        OWNERDRAW = 0x00000100,
+        SEPARATOR = 0x00000800,
+    }
+
+    [Flags]
+    public enum PCF : int
+    {
+        DTRDSR = 0x0001,
+        RTSCTS = 0x0002,
+        RLSD = 0x0004,
+        PARITY_CHECK = 0x0008,
+        XONXOFF = 0x0010,
+        SETXCHAR = 0x0020,
+        TOTALTIMEOUTS = 0x0040,
+        INTTIMEOUTS = 0x0080,
+        SPECIALCHARS = 0x0100,
+        _16BITMODE = 0x0200,
+    }
+
+    [Flags]
+    public enum SP : int
+    {
+        PARITY = 0x0001,
+        BAUD = 0x0002,
+        DATABITS = 0x0004,
+        STOPBITS = 0x0008,
+        HANDSHAKING = 0x0010,
+        PARITY_CHECK = 0x0020,
+        RLSD = 0x0040,
+    }
+
+    [Flags]
+    public enum SSP : ushort
+    {
+        STOPBITS_10 = 0x0001,
+        STOPBITS_15 = 0x0002,
+        STOPBITS_20 = 0x0004,
+        STOPBITS_MASK = 0x0007,
+        PARITY_NONE = 0x0100,
+        PARITY_ODD = 0x0200,
+        PARITY_EVEN = 0x0400,
+        PARITY_MARK = 0x0800,
+        PARITY_SPACE = 0x1000,
+        PARITY_MASK = 0x1f00,
+    }
+
     public enum VK : byte
     {
         BACK = 0x08,
@@ -154,23 +263,26 @@ namespace Emulator
         QUOTE = 0xDE,
     }
 
-    [Flags]
-    public enum KEYEVENTF : int
-    {
-        EXTENDEDKEY = 0x0001,
-        KEYUP = 0x0002,
-    }
-
-    public enum MAPVK : uint
-    {
-        VK_TO_VSC = 0,
-        VSC_TO_VK = 1,
-        VK_TO_CHAR = 2,
-        VSC_TO_VK_EX = 3,
-    }
-
     class Win32
     {
+        [DllImport("user32.dll")]
+        public static extern Boolean AppendMenu(
+            IntPtr hMenu,
+            MF uFlags,
+            UIntPtr uIDNewItem);
+
+        [DllImport("user32.dll")]
+        public static extern Boolean AppendMenu(
+            IntPtr hMenu,
+            MF uFlags,
+            UIntPtr uIDNewItem,
+            String lpNewItem);
+
+        [DllImport("user32.dll")]
+        public static extern IntPtr GetSystemMenu(
+            IntPtr hWnd,
+            Boolean bRevert);
+
         [DllImport("user32.dll")]
         public static extern void keybd_event(
             VK bVk,

@@ -48,7 +48,6 @@ namespace Emulator
     //   RFC 1372 - Telnet Remote Flow Control Option
 
     // Future Improvements / To Do
-    // handle connection close
     // properly handle incoming SYNCH
     // send GA if we are not in SGA mode (maybe)
     // Binary option (specifically its change to CR handling, see RFC 1123 3.2.7)
@@ -1465,9 +1464,10 @@ namespace Emulator
 
         private void TelnetSocket_Receive(object sender, EventArgs e)
         {
+            TelnetSocket socket = sender as TelnetSocket;
             Boolean f = false;
             Token t;
-            while ((t = mSocket.Read()).Type != TokenType.None)
+            while (((t = socket.Read()).Type != TokenType.None) && (t.Type != TokenType.Closed))
             {
                 //StringBuilder buf = new StringBuilder();
                 //buf.AppendFormat("Recv token {0} (mPtr={1:D0} mLen={2:D0})", t.Type, t.mPtr, t.mLen);
@@ -1496,7 +1496,7 @@ namespace Emulator
                 }
             }
             if ((f) && (Receive != null)) Receive(this, new IOEventArgs(IOEventType.Data, 0));
-            if ((!mSocket.Connected) && (Receive != null)) Receive(this, new IOEventArgs(IOEventType.Disconnect, 0));
+            if ((!socket.Connected || t.Type == TokenType.Closed) && (Receive != null)) Receive(this, new IOEventArgs(IOEventType.Disconnect, 0));
         }
     }
 
