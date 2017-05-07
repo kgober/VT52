@@ -548,6 +548,12 @@ namespace Emulator
                     mCaption = String.Concat("VT52 - ", mUART.IO.ConnectionString);
                     mCaptionDirty = true;
                 }
+                else if ((dlgConnection.IOAdapter == typeof(IO.RawTCP)) && !(mUART.IO is IO.RawTCP))
+                {
+                    mUART.IO = new IO.RawTCP(dlgConnection.Options);
+                    mCaption = String.Concat("VT52 - ", mUART.IO.ConnectionString);
+                    mCaptionDirty = true;
+                }
             }
         }
 

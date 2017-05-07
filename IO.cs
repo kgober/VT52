@@ -275,6 +275,7 @@ namespace Emulator
         public class Telnet : IO
         {
             private String mDestination;
+            private String mConnStr;
             private Emulator.Telnet mTelnet;
             private Boolean mBreak;
 
@@ -282,6 +283,7 @@ namespace Emulator
             {
                 String[] O = options.Split('|');
                 mDestination = O[0];
+                mConnStr = String.Concat("Telnet ", mDestination);
                 mTelnet = new Emulator.Telnet(mDestination);
                 mTelnet.Receive += Receive;
             }
@@ -290,7 +292,7 @@ namespace Emulator
 
             public override String ConnectionString
             {
-                get { return mDestination; }
+                get { return mConnStr; }
             }
 
             // telnet can't begin send until it gets last bit from Terminal UART
@@ -365,6 +367,82 @@ namespace Emulator
                 {
                     EventHandler h = IOEvent;
                     if (h != null) h(this, new IOEventArgs(IOEventType.Disconnect, 0));
+                }
+            }
+        }
+
+        public class RawTCP : IO
+        {
+            private String mDestination;
+            private String mConnStr;
+            private Emulator.RawTCP mRawTCP;
+
+            public RawTCP(String options)
+            {
+                String[] O = options.Split('|');
+                mDestination = O[0];
+                mConnStr = String.Concat("TCP ", mDestination);
+                mRawTCP = new Emulator.RawTCP(mDestination);
+                mRawTCP.Receive += Receive;
+            }
+
+            public override event EventHandler IOEvent;
+
+            public override string ConnectionString
+            {
+                get { return mConnStr; }
+            }
+
+            // can't begin send until last bit received from Terminal UART
+            public override bool DelaySend
+            {
+                get { return true; }
+            }
+
+            // receive not complete until UART delay elapses
+            public override bool DelayRecv
+            {
+                get { return true; }
+            }
+
+            public override void Send(byte data)
+            {
+                mRawTCP.Write((Byte)(data & 0x7F)); // strip parity bit
+            }
+
+            public override void SetBreak(bool asserted)
+            {
+            }
+
+            public override void SetDTR(bool asserted)
+            {
+            }
+
+            public override void SetRTS(bool asserted)
+            {
+            }
+
+            public override void Close()
+            {
+                IOEvent = null;
+                new Thread(ShutdownThread).Start();
+            }
+
+            private void ShutdownThread()
+            {
+                mRawTCP.Close();
+            }
+
+            private void Receive(Object sender, IOEventArgs e)
+            {
+                if (e.Type == IOEventType.Data)
+                {
+                    Int32 n;
+                    while ((n = mRawTCP.ReadByte()) != -1)
+                    {
+                        EventHandler h = IOEvent;
+                        if (h != null) h(this, new IOEventArgs(IOEventType.Data, (Byte)n));
+                    }
                 }
             }
         }

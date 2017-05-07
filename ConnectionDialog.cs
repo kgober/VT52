@@ -54,7 +54,8 @@ namespace Emulator
                 if (!mOK) return null;
                 if (radioButton1.Checked) return typeof(IO.Loopback);
                 if (radioButton2.Checked) return typeof(IO.Serial);
-                if (radioButton3.Checked) return typeof(IO.Telnet);
+                if (radioButton3.Checked && radioButton4.Checked) return typeof(IO.Telnet);
+                if (radioButton3.Checked && radioButton5.Checked) return typeof(IO.RawTCP);
                 return null;
             }
         }
@@ -91,6 +92,17 @@ namespace Emulator
                 radioButton1.Checked = false;
                 radioButton2.Checked = false;
                 radioButton3.Checked = true;
+                radioButton4.Checked = true;
+                radioButton5.Checked = false;
+                textBox1.Text = option;
+            }
+            else if (ioType == typeof(IO.RawTCP))
+            {
+                radioButton1.Checked = false;
+                radioButton2.Checked = false;
+                radioButton3.Checked = true;
+                radioButton4.Checked = false;
+                radioButton5.Checked = true;
                 textBox1.Text = option;
             }
         }
@@ -154,6 +166,19 @@ namespace Emulator
         private void UpdateSerialPortUI()
         {
             SerialPort P = GetSerialPort(comboBox1.Text);
+            if (P == null)
+            {
+                label1.Enabled = false;
+                comboBox2.Enabled = false;
+                label2.Enabled = false;
+                comboBox3.Enabled = false;
+                label3.Enabled = false;
+                comboBox4.Enabled = false;
+                label4.Enabled = false;
+                comboBox5.Enabled = false;
+                checkBox1.Enabled = false;
+                return;
+            }
             Boolean wasOpen = P.IsOpen;
             PCF dwProvCapabilities = 0;
             SP dwSettableParams = 0;
@@ -356,6 +381,7 @@ namespace Emulator
 
         private SerialPort GetSerialPort(String name)
         {
+            if ((name == null) || (name.Length == 0)) return null;
             if (mSerialPorts.ContainsKey(name)) return mSerialPorts[name];
             SerialPort port = new SerialPort(name);
             mSerialPorts.Add(name, port);

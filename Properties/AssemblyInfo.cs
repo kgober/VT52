@@ -50,11 +50,14 @@ using System.Runtime.InteropServices;
 //      Build Number
 //      Revision
 //
-[assembly: AssemblyVersion("1.0.0.2")]
-[assembly: AssemblyFileVersion("1.0.0.2")]
+[assembly: AssemblyVersion("1.0.0.3")]
+[assembly: AssemblyFileVersion("1.0.0.3")]
 // 1.0.0.0 - initial release
 // 1.0.0.1 - fix ConnectionDialog exception when no COM ports present
 //         - fix window size in Windows 10
 // 1.0.0.2 - allow serial port settings to be specified in ConnectionDialog
 //         - add Settings, Connection, Brightness +/-, and About to system menu
 //         - handle telnet session disconnection
+// 1.0.0.3 - fix another ConnectionDialog exception when no COM ports present
+//         - fix ConnectionDialog tab order
+//         - add Raw TCP connection option

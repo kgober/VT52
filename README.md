@@ -1,18 +1,18 @@
 This is a VT52 terminal emulator for Windows, written in C#.
 
 The aim of this project is to accurately reproduce the experience of using a real
-Digital Equipment Corporation (DEC) VT52 terminal.
+Digital Equipment Corporation (DEC) VT52 terminal, including the look of the screen.
 
 This program requires the .NET Framework, v2.0 or newer.
 
 Controls:
 
-Regular keyboard keys work as expected.
-Numeric keypad works like the VT52 keypad
-NumLock, Num/, and Num* are PF1, PF2, and PF3.
-F1, F2, and F3 can also be used as PF1, PF2, and PF3.
-F5 opens the settings dialog.
-F6 opens the connection dialog.
+Regular keyboard keys work as expected.  
+Numeric keypad works like the VT52 keypad.  
+NumLock, Num/, and Num* are PF1, PF2, and PF3.  
+F1, F2, and F3 can also be used as PF1, PF2, and PF3.  
+F5 opens the settings dialog.  
+F6 opens the connection dialog.  
 F11/F12 adjust screen brightness.
 
 Note: the emulator treats the '[' and ']' keys as most systems do: unshifted they are square brackets,

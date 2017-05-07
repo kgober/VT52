@@ -75,7 +75,7 @@ namespace Emulator
             this.groupBox1.Controls.Add(this.radioButton1);
             this.groupBox1.Location = new System.Drawing.Point(12, 12);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(117, 203);
+            this.groupBox1.Size = new System.Drawing.Size(118, 203);
             this.groupBox1.TabIndex = 0;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "S1 (Transmit)";
@@ -173,9 +173,9 @@ namespace Emulator
             this.groupBox2.Controls.Add(this.radioButton10);
             this.groupBox2.Controls.Add(this.radioButton9);
             this.groupBox2.Controls.Add(this.radioButton8);
-            this.groupBox2.Location = new System.Drawing.Point(135, 12);
+            this.groupBox2.Location = new System.Drawing.Point(136, 12);
             this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Size = new System.Drawing.Size(117, 203);
+            this.groupBox2.Size = new System.Drawing.Size(118, 203);
             this.groupBox2.TabIndex = 1;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "S2 (Receive)";
@@ -271,7 +271,7 @@ namespace Emulator
             this.groupBox3.Controls.Add(this.radioButton15);
             this.groupBox3.Location = new System.Drawing.Point(12, 221);
             this.groupBox3.Name = "groupBox3";
-            this.groupBox3.Size = new System.Drawing.Size(117, 111);
+            this.groupBox3.Size = new System.Drawing.Size(118, 112);
             this.groupBox3.TabIndex = 2;
             this.groupBox3.TabStop = false;
             this.groupBox3.Text = "Parity (Transmit)";
@@ -325,9 +325,9 @@ namespace Emulator
             this.groupBox4.Controls.Add(this.checkBox3);
             this.groupBox4.Controls.Add(this.checkBox2);
             this.groupBox4.Controls.Add(this.checkBox1);
-            this.groupBox4.Location = new System.Drawing.Point(135, 221);
+            this.groupBox4.Location = new System.Drawing.Point(136, 221);
             this.groupBox4.Name = "groupBox4";
-            this.groupBox4.Size = new System.Drawing.Size(117, 111);
+            this.groupBox4.Size = new System.Drawing.Size(118, 112);
             this.groupBox4.TabIndex = 3;
             this.groupBox4.TabStop = false;
             this.groupBox4.Text = "Emulator Options";
@@ -380,7 +380,7 @@ namespace Emulator
             // 
             this.button2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.button2.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.button2.Location = new System.Drawing.Point(97, 343);
+            this.button2.Location = new System.Drawing.Point(98, 343);
             this.button2.Name = "button2";
             this.button2.Size = new System.Drawing.Size(75, 23);
             this.button2.TabIndex = 5;
@@ -393,7 +393,7 @@ namespace Emulator
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.button2;
-            this.ClientSize = new System.Drawing.Size(265, 378);
+            this.ClientSize = new System.Drawing.Size(266, 378);
             this.Controls.Add(this.button2);
             this.Controls.Add(this.button1);
             this.Controls.Add(this.groupBox4);
