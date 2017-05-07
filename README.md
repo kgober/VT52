@@ -33,10 +33,11 @@ Connections:
 The emulator can be connected to a target system using your computer's serial port.  The serial
 port settings (baud rate, data bits, parity, and stop bits) are configurable.
 
-The emulator can also be connected to a target system over the network, using telnet.  By default
-telnet connections use port 23, but connections to other ports can be specified by adding a colon
-and the port number to the host name or IP address, e.g. "host:2023" or "192.168.1.100:2023".
+The emulator can also be connected to a target system over the network, using telnet or raw TCP.  By
+default telnet connections use port 23, but connections to other ports can be specified by adding a
+colon and the port number to the host name or IP address, e.g. "host:2023" or "192.168.1.100:2023".
 
 Note: BSD telnet historically suppressed negotiation of Telnet options when connecting to a port
 other than the Telnet well-known-port (23).  This implementation always negotiates Telnet options
-regardless of the specified port.  This will probably be changed in the future.
+regardless of the specified port.  Use the raw TCP network connection option to connect without
+any Telnet processing (options, IAC doubling, CR mapping, etc.).
