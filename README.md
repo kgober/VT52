@@ -41,3 +41,13 @@ Note: BSD telnet historically suppressed negotiation of Telnet options when conn
 other than the Telnet well-known-port (23).  This implementation always negotiates Telnet options
 regardless of the specified port.  Use the raw TCP network connection option to connect without
 any Telnet processing (options, IAC doubling, CR mapping, etc.).
+
+Command-Line Options:
+
+-t host[:port] - connect to host via telnet (port defaults to 23 if unspecified)  
+-r host:port - connect to host via raw TCP connection  
+-o s{+|-} - enable/disable Swap BS/DEL option  
+-o r{+|-} - enable/disable Auto Repeat option  
+-o g{+|-} - enable/disable Green CRT Filter option
+
+-o Options may be combined, e.g. -os-r+ to disable Swap BS/DEL and enable Auto Repeat

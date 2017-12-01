@@ -72,18 +72,75 @@ namespace Emulator
                         {
                             switch (arg[1])
                             {
+                                case 'o':
+                                case 'O':
+                                    arg = arg.Substring(2);
+                                    if ((arg.Length == 0) && (ap < args.Length)) arg = args[ap++];
+                                    while (arg.Length != 0)
+                                    {
+                                        if (arg.StartsWith("s+", StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            mOptSwapDelBS = true;
+                                            if (dlgSettings == null) dlgSettings = new SettingsDialog();
+                                            dlgSettings.OptSwapDelBS = true;
+                                            arg = arg.Substring(2);
+                                        }
+                                        else if (arg.StartsWith("s-", StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            mOptSwapDelBS = false;
+                                            if (dlgSettings == null) dlgSettings = new SettingsDialog();
+                                            dlgSettings.OptSwapDelBS = false;
+                                            arg = arg.Substring(2);
+                                        }
+                                        else if (arg.StartsWith("r+", StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            mOptAutoRepeat = true;
+                                            if (dlgSettings == null) dlgSettings = new SettingsDialog();
+                                            dlgSettings.OptAutoRepeat = true;
+                                            arg = arg.Substring(2);
+                                        }
+                                        else if (arg.StartsWith("r-", StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            mOptAutoRepeat = false;
+                                            if (dlgSettings == null) dlgSettings = new SettingsDialog();
+                                            dlgSettings.OptAutoRepeat = false;
+                                            arg = arg.Substring(2);
+                                        }
+                                        else if (arg.StartsWith("g+", StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            mDisplay.GreenFilter = true;
+                                            if (dlgSettings == null) dlgSettings = new SettingsDialog();
+                                            dlgSettings.OptGreenFilter = true;
+                                            arg = arg.Substring(2);
+                                        }
+                                        else if (arg.StartsWith("g-", StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            mDisplay.GreenFilter = false;
+                                            if (dlgSettings == null) dlgSettings = new SettingsDialog();
+                                            dlgSettings.OptGreenFilter = false;
+                                            arg = arg.Substring(2);
+                                        }
+                                    }
+                                    break;
+                                case 'r':
+                                case 'R':
+                                    arg = arg.Substring(2);
+                                    if ((arg.Length == 0) && (ap < args.Length)) arg = args[ap++];
+                                    mUART.IO = new IO.RawTCP(arg);
+                                    mCaption = String.Concat("VT52 - ", mUART.IO.ConnectionString);
+                                    mCaptionDirty = true;
+                                    if (dlgConnection == null) dlgConnection = new ConnectionDialog();
+                                    dlgConnection.Set(typeof(IO.RawTCP), arg);
+                                    break;
                                 case 't':
                                 case 'T':
                                     arg = arg.Substring(2);
-                                    if ((arg.Length == 0) && (ap < args.Length))
-                                    {
-                                        arg = args[ap++];
-                                        mUART.IO = new IO.Telnet(arg);
-                                        mCaption = String.Concat("VT52 - ", mUART.IO.ConnectionString);
-                                        mCaptionDirty = true;
-                                        if (dlgConnection == null) dlgConnection = new ConnectionDialog();
-                                        dlgConnection.Set(typeof(IO.Telnet), arg);
-                                    }
+                                    if ((arg.Length == 0) && (ap < args.Length)) arg = args[ap++];
+                                    mUART.IO = new IO.Telnet(arg);
+                                    mCaption = String.Concat("VT52 - ", mUART.IO.ConnectionString);
+                                    mCaptionDirty = true;
+                                    if (dlgConnection == null) dlgConnection = new ConnectionDialog();
+                                    dlgConnection.Set(typeof(IO.Telnet), arg);
                                     break;
                             }
                         }
@@ -169,7 +226,7 @@ namespace Emulator
                 Char c;
                 VK k = MapKey(wParam, lParam);
                 Int32 l = lParam.ToInt32();
-                //Log.WriteLine("KeyDown: wParam={0:X8} lParam={1:X8} num={2}", (Int32)wParam, l, Console.NumberLock);
+                //Log.WriteLine("KeyDown: wParam={0:X8} lParam={1:X8} vk={2} (0x{3:X2}) num={4}", (Int32)wParam, l, k.ToString(), (Int32)k, Console.NumberLock);
 
                 // prevent NumLock key from changing NumLock state by pressing it again
                 if (k == VK.NUMLOCK)
@@ -183,8 +240,10 @@ namespace Emulator
                 if (k == VK.F11) { LowerBrightness(); return true; }
                 if (k == VK.F12) { RaiseBrightness(); return true; }
 
-                if (((l & 0x40000000) != 0) && (mOptAutoRepeat == false)) return true;
-                if (!mKeys.Contains(k)) mKeys.Add(k);
+                if (!mKeys.Contains(k))
+                    mKeys.Add(k);
+                else if (((l & 0x40000000) != 0) && (mOptAutoRepeat == false))
+                    return true;
 
                 if ((k >= VK.A) && (k <= VK.Z))
                 {

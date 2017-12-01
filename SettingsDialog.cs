@@ -87,16 +87,19 @@ namespace Emulator
         public Boolean OptSwapDelBS
         {
             get { return checkBox1.Checked; }
+            set { checkBox1.Checked = value; }
         }
 
         public Boolean OptAutoRepeat
         {
             get { return checkBox2.Checked; }
+            set { checkBox2.Checked = value; }
         }
 
         public Boolean OptGreenFilter
         {
             get { return checkBox3.Checked; }
+            set { checkBox3.Checked = value; }
         }
 
         private void SettingsDialog_Load(object sender, EventArgs e)

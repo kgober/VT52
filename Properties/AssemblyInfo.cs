@@ -50,8 +50,8 @@ using System.Runtime.InteropServices;
 //      Build Number
 //      Revision
 //
-[assembly: AssemblyVersion("1.0.0.3")]
-[assembly: AssemblyFileVersion("1.0.0.3")]
+[assembly: AssemblyVersion("1.0.0.4")]
+[assembly: AssemblyFileVersion("1.0.0.4")]
 // 1.0.0.0 - initial release
 // 1.0.0.1 - fix ConnectionDialog exception when no COM ports present
 //         - fix window size in Windows 10
@@ -61,3 +61,6 @@ using System.Runtime.InteropServices;
 // 1.0.0.3 - fix another ConnectionDialog exception when no COM ports present
 //         - fix ConnectionDialog tab order
 //         - add Raw TCP connection option
+// 1.0.0.4 - add command line options for Raw TCP and Emulator Options
+//         - add version number to About dialog
+//         - improve keyboard handling

@@ -20,6 +20,7 @@
 // SOFTWARE.
 
 using System;
+using System.Reflection;
 using System.Windows.Forms;
 
 namespace Emulator
@@ -90,7 +91,8 @@ namespace Emulator
                             }
                             break;
                         case 99: // About VT52
-                            MessageBox.Show("VT52\r\nCopyright © Kenneth Gober 2016, 2017", "About VT52");
+                            String v = Assembly.GetExecutingAssembly().GetName().Version.ToString();
+                            MessageBox.Show(String.Concat("VT52 v", v, "\r\nCopyright © Kenneth Gober 2016, 2017"), "About VT52");
                             break;
                         default:
                             base.WndProc(ref m);
