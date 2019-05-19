@@ -25,7 +25,7 @@ The transmit and receive speed can be adjusted in the Settings dialog.  A real V
 transmit/receive speeds of 9600 bps (set using 2 dials), but the emulator will allow 19200 bps
 or "line speed" which means "as fast as the underlying physical connection can go".  The terminal
 speed can be set independently of the speed of the underlying physical connection so that you
-can, for example, reproduce ASCII animations that look best at a certain speed (even though you
+can, for example, reproduce ASCII animations that look best at a slower speed (even though you
 are actually using a much faster connection such as Ethernet).
 
 Connections:
@@ -36,9 +36,10 @@ port settings (baud rate, data bits, parity, and stop bits) are configurable.
 The emulator can also be connected to a target system over the network, using telnet or raw TCP.  By
 default telnet connections use port 23, but connections to other ports can be specified by adding a
 colon and the port number to the host name or IP address, e.g. "host:2023" or "192.168.1.100:2023".
+Raw TCP connections don't have a default port, so you must always specify it.
 
 Note: BSD telnet historically suppressed negotiation of Telnet options when connecting to a port
-other than the Telnet well-known-port (23).  This implementation always negotiates Telnet options
+other than the Telnet well-known-port (23).  This implementation of telnet always negotiates options
 regardless of the specified port.  Use the raw TCP network connection option to connect without
 any Telnet processing (options, IAC doubling, CR mapping, etc.).
 

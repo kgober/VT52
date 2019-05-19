@@ -1,5 +1,5 @@
 // ConnectionDialog.cs
-// Copyright (c) 2016, 2017 Kenneth Gober
+// Copyright (c) 2016, 2017, 2019 Kenneth Gober
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -34,7 +34,7 @@ namespace Emulator
 
     public partial class ConnectionDialog : Form
     {
-        private Boolean mOK;
+        private Boolean mOK = true;
         private Dictionary<String, SerialPort> mSerialPorts = new Dictionary<String, SerialPort>(StringComparer.OrdinalIgnoreCase);
 
         public ConnectionDialog()
@@ -92,8 +92,8 @@ namespace Emulator
                 radioButton1.Checked = false;
                 radioButton2.Checked = false;
                 radioButton3.Checked = true;
-                radioButton4.Checked = true;
                 radioButton5.Checked = false;
+                radioButton4.Checked = true;
                 textBox1.Text = option;
             }
             else if (ioType == typeof(IO.RawTCP))

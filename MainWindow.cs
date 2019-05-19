@@ -1,5 +1,5 @@
 // MainWindow.cs
-// Copyright (c) 2016, 2017 Kenneth Gober
+// Copyright (c) 2016, 2017, 2019 Kenneth Gober
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -92,7 +92,7 @@ namespace Emulator
                             break;
                         case 99: // About VT52
                             String v = Assembly.GetExecutingAssembly().GetName().Version.ToString();
-                            MessageBox.Show(String.Concat("VT52 v", v, "\r\nCopyright © Kenneth Gober 2016, 2017"), "About VT52");
+                            MessageBox.Show(String.Concat("VT52 v", v, "\r\nCopyright © Kenneth Gober 2016, 2017, 2019\r\nhttps://github.com/kgober/VT52"), "About VT52");
                             break;
                         default:
                             base.WndProc(ref m);

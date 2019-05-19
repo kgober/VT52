@@ -1,5 +1,5 @@
 // VT52.cs
-// Copyright (c) 2016, 2017 Kenneth Gober
+// Copyright (c) 2016, 2017, 2019 Kenneth Gober
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -38,13 +38,16 @@ namespace Emulator
         // http://bitsavers.trailing-edge.com/pdf/dec/terminal/vt52/MP00035_VT52schem.pdf
 
         // Future Improvements / To Do
-        // move command line argument processing somewhere more sensible
         // key click
+        // accurate bell sound
         // copy key (incl. ESC Z report of printer support) (home or pgup)
         // repeat key (alt)
         // local copy (internal UART loopback)
         // accurate behavior for invalid S1/S2 switch combinations
         // accurate keyboard rollover
+        // add command line option for serial connection
+        // allow re-use of recent network destinations
+        // store previous serial port configuration
 
 
         // Terminal-MainWindow Interface [Main UI Thread]
@@ -126,21 +129,17 @@ namespace Emulator
                                 case 'R':
                                     arg = arg.Substring(2);
                                     if ((arg.Length == 0) && (ap < args.Length)) arg = args[ap++];
-                                    mUART.IO = new IO.RawTCP(arg);
-                                    mCaption = String.Concat("VT52 - ", mUART.IO.ConnectionString);
-                                    mCaptionDirty = true;
                                     if (dlgConnection == null) dlgConnection = new ConnectionDialog();
                                     dlgConnection.Set(typeof(IO.RawTCP), arg);
+                                    mUART.IO = ConnectRawTCP(dlgConnection.Options);
                                     break;
                                 case 't':
                                 case 'T':
                                     arg = arg.Substring(2);
                                     if ((arg.Length == 0) && (ap < args.Length)) arg = args[ap++];
-                                    mUART.IO = new IO.Telnet(arg);
-                                    mCaption = String.Concat("VT52 - ", mUART.IO.ConnectionString);
-                                    mCaptionDirty = true;
                                     if (dlgConnection == null) dlgConnection = new ConnectionDialog();
                                     dlgConnection.Set(typeof(IO.Telnet), arg);
+                                    mUART.IO = ConnectTelnet(dlgConnection.Options);
                                     break;
                             }
                         }
@@ -226,7 +225,9 @@ namespace Emulator
                 Char c;
                 VK k = MapKey(wParam, lParam);
                 Int32 l = lParam.ToInt32();
-                //Log.WriteLine("KeyDown: wParam={0:X8} lParam={1:X8} vk={2} (0x{3:X2}) num={4}", (Int32)wParam, l, k.ToString(), (Int32)k, Console.NumberLock);
+#if DEBUG
+                Log.WriteLine("KeyDown: wParam={0:X8} lParam={1:X8} vk={2} (0x{3:X2}) num={4}", (Int32)wParam, l, k.ToString(), (Int32)k, Console.NumberLock);
+#endif
 
                 // prevent NumLock key from changing NumLock state by pressing it again
                 if (k == VK.NUMLOCK)
@@ -431,8 +432,9 @@ namespace Emulator
             {
                 VK k = MapKey(wParam, lParam);
                 Int32 l = (Int32)(lParam.ToInt64() & 0x00000000FFFFFFFF);
-                //Log.WriteLine("KeyUp: wParam={0:X8} lParam={1:X8}", (Int32)wParam, l);
-
+#if DEBUG
+                Log.WriteLine("KeyUp: wParam={0:X8} lParam={1:X8} vk={2} (0x{3:X2}) num={4}", (Int32)wParam, l, k.ToString(), (Int32)k, Console.NumberLock);
+#endif
                 if (mKeys.Contains(k)) mKeys.Remove(k);
 
                 if ((k >= VK.A) && (k <= VK.Z)) return true;
@@ -589,29 +591,105 @@ namespace Emulator
                 if (dlgConnection == null) dlgConnection = new ConnectionDialog();
                 dlgConnection.ShowDialog();
                 if (!dlgConnection.OK) return;
-                if ((dlgConnection.IOAdapter == typeof(IO.Loopback)) && !(mUART.IO is IO.Loopback))
+                if (dlgConnection.IOAdapter == typeof(IO.Loopback))
                 {
-                    mUART.IO = new IO.Loopback();
-                    mCaption = String.Concat("VT52 - ", mUART.IO.ConnectionString);
-                    mCaptionDirty = true;
+                    mUART.IO = ConnectLoopback(dlgConnection.Options);
                 }
-                else if ((dlgConnection.IOAdapter == typeof(IO.Serial)) && !(mUART.IO is IO.Serial))
+                else if (dlgConnection.IOAdapter == typeof(IO.Serial))
                 {
-                    mUART.IO = new IO.Serial(dlgConnection.Options);
-                    mCaption = String.Concat("VT52 - ", mUART.IO.ConnectionString);
-                    mCaptionDirty = true;
+                    mUART.IO = ConnectSerial(dlgConnection.Options);
                 }
-                else if ((dlgConnection.IOAdapter == typeof(IO.Telnet)) && !(mUART.IO is IO.Telnet))
+                else if (dlgConnection.IOAdapter == typeof(IO.Telnet))
                 {
-                    mUART.IO = new IO.Telnet(dlgConnection.Options);
-                    mCaption = String.Concat("VT52 - ", mUART.IO.ConnectionString);
-                    mCaptionDirty = true;
+                    mUART.IO = ConnectTelnet(dlgConnection.Options);
                 }
-                else if ((dlgConnection.IOAdapter == typeof(IO.RawTCP)) && !(mUART.IO is IO.RawTCP))
+                else if (dlgConnection.IOAdapter == typeof(IO.RawTCP))
                 {
-                    mUART.IO = new IO.RawTCP(dlgConnection.Options);
-                    mCaption = String.Concat("VT52 - ", mUART.IO.ConnectionString);
-                    mCaptionDirty = true;
+                    mUART.IO = ConnectRawTCP(dlgConnection.Options);
+                }
+            }
+
+            private IO ConnectLoopback(String options)
+            {
+                if (mUART.IO is IO.Loopback) return mUART.IO;
+                try
+                {
+                    IO X = new IO.Loopback(options);
+                    String s = String.Concat("VT52 - ", X.ConnectionString);
+                    if (String.Compare(s, mCaption) != 0)
+                    {
+                        mCaption = s;
+                        mCaptionDirty = true;
+                    }
+                    return X;
+                }
+                catch (Exception ex)
+                {
+                    System.Windows.Forms.MessageBox.Show(ex.Message);
+                    return mUART.IO;
+                }
+            }
+
+            private IO ConnectSerial(String options)
+            {
+                if ((mUART.IO is IO.Serial) && (String.Compare(mUART.IO.Options, options) == 0)) return mUART.IO;
+                try
+                {
+                    IO X = new IO.Serial(options);
+                    String s = String.Concat("VT52 - ", X.ConnectionString);
+                    if (String.Compare(s, mCaption) != 0)
+                    {
+                        mCaption = s;
+                        mCaptionDirty = true;
+                    }
+                    return X;
+                }
+                catch (Exception ex)
+                {
+                    System.Windows.Forms.MessageBox.Show(ex.Message);
+                    return mUART.IO;
+                }
+            }
+
+            private IO ConnectTelnet(String options)
+            {
+                if ((mUART.IO is IO.Telnet) && (String.Compare(mUART.IO.Options, options) == 0)) return mUART.IO;
+                try
+                {
+                    IO X = new IO.Telnet(options);
+                    String s = String.Concat("VT52 - ", X.ConnectionString);
+                    if (String.Compare(s, mCaption) != 0)
+                    {
+                        mCaption = s;
+                        mCaptionDirty = true;
+                    }
+                    return X;
+                }
+                catch (Exception ex)
+                {
+                    System.Windows.Forms.MessageBox.Show(ex.Message);
+                    return mUART.IO;
+                }
+            }
+
+            private IO ConnectRawTCP(String options)
+            {
+                if ((mUART.IO is IO.RawTCP) && (String.Compare(mUART.IO.Options, options) == 0)) return mUART.IO;
+                try
+                {
+                    IO X = new IO.RawTCP(options);
+                    String s = String.Concat("VT52 - ", X.ConnectionString);
+                    if (String.Compare(s, mCaption) != 0)
+                    {
+                        mCaption = s;
+                        mCaptionDirty = true;
+                    }
+                    return X;
+                }
+                catch (Exception ex)
+                {
+                    System.Windows.Forms.MessageBox.Show(ex.Message);
+                    return mUART.IO;
                 }
             }
         }
@@ -622,11 +700,17 @@ namespace Emulator
         public partial class VT52
         {
             private Display mDisplay;
+            private Queue<Byte> mSilo;              // buffered bytes received from UART
+            private Int32 mHoldCount;               // number of scrolls until Hold Screen pauses (0 = pausing)
+            private Int32 mEsc;                     // processing state for ESC sequences
+            private Boolean mGraphicsMode;          // Graphics Mode enabled
 
             // called by main UI thread via constructor
             private void InitDisplay()
             {
                 mDisplay = new Display(this);
+                mSilo = new Queue<Byte>(13);
+                mHoldCount = -1;
             }
 
             // called by main UI thread
@@ -645,50 +729,255 @@ namespace Emulator
             // called by main UI thread via KeyDown() or system menu
             public void LowerBrightness()
             {
-                mDisplay.ChangeBrightness(-1);
+                mDisplay.ChangeBrightness(-5);
             }
 
             // called by main UI thread via KeyDown() or system menu
             public void RaiseBrightness()
             {
-                mDisplay.ChangeBrightness(1);
+                mDisplay.ChangeBrightness(5);
             }
 
             // called by main UI thread via KeyDown()
             private void AllowScroll(Int32 lines)
             {
-                mDisplay.AllowScroll(lines);
+                lock (mSilo)
+                {
+                    if (mHoldCount == 0)
+                    {
+                        mHoldCount += lines;
+                        while ((mHoldCount != 0) && (mSilo.Count != 0)) Output(mSilo.Dequeue());
+                        if (mHoldCount != 0) Send(0x11); // XON
+                    }
+                }
             }
 
             // called by worker thread
-            private void Recv(Byte data)
+            private void Recv(Byte c)
             {
-                //Log.WriteLine("Recv: {0} ({1:D0})", (Char)data, data);
-                mDisplay.Recv(data);
+#if DEBUG
+                Log.WriteLine("Recv: {0} ({1:D0}/0x{1:X2})", (Char)c, c);
+#endif
+                // if Hold Screen is pausing, divert received chars to silo
+                lock (mSilo)
+                {
+                    if (mHoldCount == 0)
+                    {
+                        if (mSilo.Count == 13)
+                        {
+                            // prevent silo overflow by allowing 1 scroll
+                            mHoldCount++;
+                            while ((mHoldCount != 0) && (mSilo.Count != 0)) Output(mSilo.Dequeue());
+                            if ((mHoldCount != 0) && (c != 0x0A)) Send(0x11); // XON
+                        }
+                        if (mHoldCount == 0)
+                        {
+                            mSilo.Enqueue(c);
+                            return;
+                        }
+                    }
+                }
+                Output(c);
             }
+
+            private void Output(Byte c)
+            {
+                Int32 nx, ny;
+                if ((c >= 32) && (c < 127))
+                {
+                    switch (mEsc)
+                    {
+                        case 0: // regular ASCII characters (non-control, non-escaped)
+                            if ((c >= 94) && (mGraphicsMode))
+                            {
+                                Int32 n = c - 95;
+                                if (n < 0) n = 0;
+                                c = (Byte)n;
+                            }
+                            mDisplay.Char = (Byte)c;
+                            mDisplay.MoveCursorRel(1, 0);
+                            return;
+                        case 1: // ESC - Escape Sequence
+                            break;
+                        case 2: // ESC Y <row> - Direct Cursor Addressing
+                            mEsc = c;
+                            return;
+                        default: // ESC Y <row> <col> - Direct Cursor Addressing
+                            nx = c - 32;
+                            if (nx >= Display.COLS) nx = Display.COLS - 1;
+                            ny = mEsc - 32;
+                            if (ny >= Display.ROWS) ny = mDisplay.CursorY;
+                            mEsc = 0;
+                            mDisplay.MoveCursorAbs(nx, ny);
+                            return;
+                    }
+                }
+
+                switch ((Char)c)
+                {
+                    case '\r': // CR - Carriage Return
+                        mDisplay.MoveCursorAbs(0, mDisplay.CursorY);
+                        return;
+                    case '\n': // LF - Line Feed
+                        ny = mDisplay.CursorY + 1;
+                        if (ny >= Display.ROWS)
+                        {
+                            if (mHoldCount > 0) mHoldCount--;
+                            if (mHoldCount == 0)
+                            {
+                                mSilo.Enqueue(c);
+                                Send(0x13); // XOFF
+                                return;
+                            }
+                            ScrollUp();
+                            ny = Display.ROWS - 1;
+                        }
+                        mDisplay.MoveCursorAbs(mDisplay.CursorX, ny);
+                        return;
+                    case '\b': // BS - Backspace
+                        mDisplay.MoveCursorRel(-1, 0);
+                        return;
+                    case '\t': // HT - Horizontal Tab
+                        if (mDisplay.CursorX >= 72)
+                            mDisplay.MoveCursorRel(1, 0);
+                        else
+                            mDisplay.MoveCursorRel(8 - (mDisplay.CursorX % 8), 0);
+                        return;
+                    case '\a': // BEL - Ring the Bell
+                        mDisplay.Beep();
+                        return;
+                    case '\x1B': // ESC - Escape Sequence
+                        mEsc = 1;
+                        return;
+                    case 'A': // ESC A - Cursor Up
+                        mEsc = 0;
+                        mDisplay.MoveCursorRel(0, -1);
+                        return;
+                    case 'B': // ESC B - Cursor Down
+                        mEsc = 0;
+                        mDisplay.MoveCursorRel(0, 1);
+                        return;
+                    case 'C': // ESC C - Cursor Right
+                        mEsc = 0;
+                        mDisplay.MoveCursorRel(1, 0);
+                        return;
+                    case 'D': // ESC D - Cursor Left
+                        mEsc = 0;
+                        mDisplay.MoveCursorRel(-1, 0);
+                        return;
+                    case 'F': // ESC F - Enter Graphics Mode
+                        mEsc = 0;
+                        mGraphicsMode = true;
+                        return;
+                    case 'G': // ESC G - Exit Graphics Mode
+                        mEsc = 0;
+                        mGraphicsMode = false;
+                        return;
+                    case 'H': // ESC H - Cursor Home
+                        mEsc = 0;
+                        mDisplay.MoveCursorAbs(0, 0);
+                        return;
+                    case 'I': // ESC I - Reverse Line Feed
+                        mEsc = 0;
+                        ny = mDisplay.CursorY - 1;
+                        if (ny < 0)
+                        {
+                            ScrollDown();
+                            ny = 0;
+                        }
+                        mDisplay.MoveCursorAbs(mDisplay.CursorX, ny);
+                        return;
+                    case 'J': // ESC J - Erase to End-of-Screen
+                        mEsc = 0;
+                        for (Int32 x = mDisplay.CursorX; x < Display.COLS; x++) mDisplay[x, mDisplay.CursorY] = 32;
+                        for (Int32 y = mDisplay.CursorY + 1; y < Display.ROWS; y++)
+                        {
+                            for (Int32 x = 0; x < Display.COLS; x++) mDisplay[x, y] = 32;
+                        }
+                        return;
+                    case 'K': // ESC K - Erase to End-of-Line
+                        mEsc = 0;
+                        for (Int32 x = mDisplay.CursorX; x < Display.COLS; x++) mDisplay[x, mDisplay.CursorY] = 32;
+                        return;
+                    case 'Y': // ESC Y - Direct Cursor Addressing
+                        mEsc = 2;
+                        return;
+                    case 'Z': // ESC Z - Identify Terminal Type
+                        mEsc = 0;
+                        Send(0x1B);
+                        Send((Byte)'/');
+                        Send((Byte)'K');
+                        return;
+                    case '[': // ESC [ - Enter Hold-Screen Mode
+                        mEsc = 0;
+                        mHoldCount = 1;
+                        return;
+                    case '\\': // ESC \ - Exit Hold-Screen Mode
+                        mEsc = 0;
+                        mHoldCount = -1;
+                        return;
+                    case '=': // ESC = - Enter Alternate-Keypad Mode
+                        mEsc = 0;
+                        KeypadMode = true;
+                        return;
+                    case '>': // ESC > - Exit Alternate-Keypad Mode
+                        mEsc = 0;
+                        KeypadMode = false;
+                        return;
+                    default:
+                        if ((c >= 32) && (c < 127)) mEsc = 0; // ignore unrecognized escape sequences
+                        return;
+                }
+            }
+
+            private void ScrollUp()
+            {
+                for (Int32 y = 0; y < Display.ROWS - 1; y++)
+                {
+                    for (Int32 x = 0; x < Display.COLS; x++)
+                    {
+                        mDisplay[x, y] = mDisplay[x, y + 1];
+                    }
+                }
+                for (Int32 x = 0; x < Display.COLS; x++) mDisplay[x, Display.ROWS - 1] = 32;
+            }
+
+            private void ScrollDown()
+            {
+                for (Int32 y = Display.ROWS - 1; y > 0; y--)
+                {
+                    for (Int32 x = 0; x < Display.COLS; x++)
+                    {
+                        mDisplay[x, y] = mDisplay[x, y - 1];
+                    }
+                }
+                for (Int32 x = 0; x < Display.COLS; x++) mDisplay[x, 0] = 32;
+            }
+
+            // 80x24 character cells, each cell is 10 raster lines tall and 9 dots wide.
+            // top raster line is blank, next 8 are for character, last is cursor line.
+            // To simulate the raster, a 1 pixel gap is left between each raster line.
+            // P4 phosphor (white).
 
             private class Display
             {
-                private const Int32 ROWS = 24;
-                private const Int32 COLS = 80;
+                public const Int32 ROWS = 24;
+                public const Int32 COLS = 80;
                 private const Int32 PIXELS_PER_ROW = 20;
                 private const Int32 PIXELS_PER_COL = 9;
 
                 private VT52 mVT52;                     // for calling parent's methods
                 private UInt32[] mPixMap;               // pixels
                 private GCHandle mPixMapHandle;         // handle for pinned pixels
-                private UInt32 mOffColor;               // pixel 'off' color
-                private UInt32 mOnColor;                // pixel 'on' color
                 private Bitmap mBitmap;                 // bitmap interface
                 private volatile Boolean mBitmapDirty;  // true if bitmap has changed
                 private Byte[] mChars;                  // characters on screen
                 private Int32 mX, mY;                   // cursor position
                 private Timer mCursorTimer;             // cursor blink timer
                 private Boolean mCursorVisible;         // whether cursor is currently visible
-                private Queue<Byte> mSilo;              // buffered bytes received from UART
-                private Int32 mHoldCount;               // number of scrolls until Hold Screen pauses (0 = pausing)
-                private Int32 mEsc;                     // processing state for ESC sequences
-                private Boolean mGraphicsMode;          // Graphics Mode enabled
+                private Int32 mBrightness;              // brightness (0-100)
+                private UInt32 mOffColor;               // pixel 'off' color
+                private UInt32 mOnColor;                // pixel 'on' color
                 private Boolean mOptGreenFilter;        // simulate green CRT filter
 
                 public Display(VT52 parent)
@@ -698,14 +987,14 @@ namespace Emulator
                     Int32 y = ROWS * PIXELS_PER_ROW;
                     mPixMap = new UInt32[x * y];
                     mPixMapHandle = GCHandle.Alloc(mPixMap, GCHandleType.Pinned);
-                    mOffColor = Color(0);
-                    mOnColor = Color(255);
                     mBitmap = new Bitmap(x, y, x * sizeof(Int32), PixelFormat.Format32bppPArgb, mPixMapHandle.AddrOfPinnedObject());
                     mBitmapDirty = true;
                     mChars = new Byte[COLS * ROWS];
-                    mCursorTimer = new Timer(CursorTimer_Callback, this, 0, 250);
-                    mSilo = new Queue<Byte>(13);
-                    mHoldCount = -1;
+                    mBrightness = 85;   // 85% is the maximum brightness without blue being oversaturated
+                    mOffColor = Color(0);
+                    mOnColor = Color(mBrightness);
+                    mCursorVisible = false;
+                    mCursorTimer = new Timer(CursorTimer_Callback, this, 0, 250); // 4 transitions per second (2 Hz blink rate)
                 }
 
                 public Bitmap Bitmap
@@ -727,215 +1016,69 @@ namespace Emulator
                     }
                     set
                     {
-                        mOptGreenFilter = value;
-                        UInt32 c = Color((Byte)((mOnColor >> 8) & 0xFF));
-                        ReplacePixels(mOnColor, c);
-                        mOnColor = c;
-                    }
-                }
-
-                public void Recv(Byte data)
-                {
-                    // if Hold Screen is pausing, divert received chars to silo
-                    lock (mSilo)
-                    {
-                        if (mHoldCount == 0)
+                        if (mOptGreenFilter != value)
                         {
-                            if (mSilo.Count == 13)
-                            {
-                                // prevent silo overflow by allowing 1 scroll
-                                mHoldCount++;
-                                while ((mHoldCount != 0) && (mSilo.Count != 0)) Output(mSilo.Dequeue());
-                                if ((mHoldCount != 0) && (data != 0x0A)) mVT52.Send(0x11); // XON
-                            }
-                            if (mHoldCount == 0)
-                            {
-                                mSilo.Enqueue(data);
-                                return;
-                            }
+                            mOptGreenFilter = value;
+                            ChangeBrightness(0);
                         }
                     }
-                    Output(data);
-                    return;
                 }
 
-                public void AllowScroll(Int32 lines)
+                public Int32 CursorX
                 {
-                    lock (mSilo)
+                    get { return mX; }
+                }
+
+                public Int32 CursorY
+                {
+                    get { return mY; }
+                }
+
+                public Byte Char
+                {
+                    get { return this[mX, mY]; }
+                    set { this[mX, mY] = value; }
+                }
+
+                public Byte this[Int32 x, Int32 y]
+                {
+                    get
                     {
-                        if (mHoldCount == 0)
-                        {
-                            mHoldCount += lines;
-                            while ((mHoldCount != 0) && (mSilo.Count != 0)) Output(mSilo.Dequeue());
-                            if (mHoldCount != 0) mVT52.Send(0x11); // XON
-                        }
+                        if ((x < 0) || (x >= COLS)) throw new ArgumentOutOfRangeException("x");
+                        if ((y < 0) || (y >= ROWS)) throw new ArgumentOutOfRangeException("y");
+                        return mChars[y * COLS + x];
                     }
-                    return;
-                }
-
-                public void ChangeBrightness(Int32 delta)
-                {
-                    Int32 b = (Byte)((mOnColor >> 8) & 0xFF);
-                    b += delta;
-                    if (b < 0) b = 0;
-                    if (b > 255) b = 255;
-                    UInt32 old = mOnColor;
-                    mOnColor = Color((Byte)b);
-                    ReplacePixels(old, mOnColor);
-                }
-
-                private void Output(Byte c)
-                {
-                    //Log.WriteLine("Display.Output: {0} (0x{1:X2})", (Char)c, c);
-                    Int32 nx, ny;
-                    if ((c >= 32) && (c < 127))
+                    set
                     {
-                        switch (mEsc)
+                        if ((x < 0) || (x >= COLS)) throw new ArgumentOutOfRangeException("x");
+                        if ((y < 0) || (y >= ROWS)) throw new ArgumentOutOfRangeException("y");
+                        Int32 p = y * COLS + x;
+                        if (mChars[p] == value) return;
+                        mChars[p] = value;
+                        p = value * 8;
+                        if (p >= CharGen.Length) return;
+                        lock (mBitmap)
                         {
-                            case 0: // regular ASCII characters (non-control, non-escaped)
-                                if ((c >= 94) && (mGraphicsMode))
+                            x *= PIXELS_PER_COL;
+                            y *= PIXELS_PER_ROW;
+                            Int32 q = y * COLS * PIXELS_PER_COL + x + 1;
+                            for (Int32 dy = 0; dy < 8; dy++)
+                            {
+                                Byte b = CharGen[p++];
+                                Byte m = 64;
+                                for (Int32 dx = 0; dx < 7; dx++)
                                 {
-                                    Int32 n = c - 95;
-                                    if (n < 0) n = 0;
-                                    c = (Byte)n;
+                                    mPixMap[q + dx] = ((b & m) == 0) ? mOffColor : mOnColor;
+                                    m >>= 1;
                                 }
-                                SetChar(mX, mY, c);
-                                MoveCursorRel(1, 0);
-                                return;
-                            case 1: // ESC - Escape Sequence
-                                break;
-                            case 2: // ESC Y <row> - Direct Cursor Addressing
-                                mEsc = c;
-                                return;
-                            default: // ESC Y <row> <col> - Direct Cursor Addressing
-                                nx = c - 32;
-                                if (nx >= COLS) nx = COLS - 1;
-                                ny = mEsc - 32;
-                                if (ny >= ROWS) ny = mY;
-                                mEsc = 0;
-                                MoveCursorAbs(nx, ny);
-                                return;
+                                q += COLS * PIXELS_PER_COL * 2;
+                            }
+                            mBitmapDirty = true;
                         }
-                    }
-
-                    switch ((Char)c)
-                    {
-                        case '\r': // CR - Carriage Return
-                            MoveCursorAbs(0, mY);
-                            return;
-                        case '\n': // LF - Line Feed
-                            ny = mY + 1;
-                            if (ny >= ROWS)
-                            {
-                                if (mHoldCount > 0) mHoldCount--;
-                                if (mHoldCount == 0)
-                                {
-                                    mSilo.Enqueue(c);
-                                    mVT52.Send(0x13); // XOFF
-                                    return;
-                                }
-                                ScrollUp();
-                                ny = ROWS - 1;
-                            }
-                            MoveCursorAbs(mX, ny);
-                            return;
-                        case '\b': // BS - Backspace
-                            MoveCursorRel(-1, 0);
-                            return;
-                        case '\t': // HT - Horizontal Tab
-                            if (mX >= 72)
-                                MoveCursorRel(1, 0);
-                            else
-                                MoveCursorRel(8 - (mX % 8), 0);
-                            return;
-                        case '\a': // BEL - Ring the Bell
-                            SystemSounds.Beep.Play();
-                            return;
-                        case '\x1B': // ESC - Escape Sequence
-                            mEsc = 1;
-                            return;
-                        case 'A': // ESC A - Cursor Up
-                            mEsc = 0;
-                            MoveCursorRel(0, -1);
-                            return;
-                        case 'B': // ESC B - Cursor Down
-                            mEsc = 0;
-                            MoveCursorRel(0, 1);
-                            return;
-                        case 'C': // ESC C - Cursor Right
-                            mEsc = 0;
-                            MoveCursorRel(1, 0);
-                            return;
-                        case 'D': // ESC D - Cursor Left
-                            mEsc = 0;
-                            MoveCursorRel(-1, 0);
-                            return;
-                        case 'F': // ESC F - Enter Graphics Mode
-                            mEsc = 0;
-                            mGraphicsMode = true;
-                            return;
-                        case 'G': // ESC G - Exit Graphics Mode
-                            mEsc = 0;
-                            mGraphicsMode = false;
-                            return;
-                        case 'H': // ESC H - Cursor Home
-                            mEsc = 0;
-                            MoveCursorAbs(0, 0);
-                            return;
-                        case 'I': // ESC I - Reverse Line Feed
-                            mEsc = 0;
-                            ny = mY - 1;
-                            if (ny < 0)
-                            {
-                                ScrollDown();
-                                ny = 0;
-                            }
-                            MoveCursorAbs(mX, ny);
-                            return;
-                        case 'J': // ESC J - Erase to End-of-Screen
-                            mEsc = 0;
-                            for (Int32 x = mX; x < COLS; x++) SetChar(x, mY, 32);
-                            for (Int32 y = mY + 1; y < ROWS; y++)
-                            {
-                                for (Int32 x = 0; x < COLS; x++) SetChar(x, y, 32);
-                            }
-                            return;
-                        case 'K': // ESC K - Erase to End-of-Line
-                            mEsc = 0;
-                            for (Int32 x = mX; x < COLS; x++) SetChar(x, mY, 32);
-                            return;
-                        case 'Y': // ESC Y - Direct Cursor Addressing
-                            mEsc = 2;
-                            return;
-                        case 'Z': // ESC Z - Identify Terminal Type
-                            mEsc = 0;
-                            mVT52.Send(0x1B);
-                            mVT52.Send((Byte)'/');
-                            mVT52.Send((Byte)'K');
-                            return;
-                        case '[': // ESC [ - Enter Hold-Screen Mode
-                            mEsc = 0;
-                            mHoldCount = 1;
-                            return;
-                        case '\\': // ESC \ - Exit Hold-Screen Mode
-                            mEsc = 0;
-                            mHoldCount = -1;
-                            return;
-                        case '=': // ESC = - Enter Alternate-Keypad Mode
-                            mEsc = 0;
-                            mVT52.KeypadMode = true;
-                            return;
-                        case '>': // ESC > - Exit Alternate-Keypad Mode
-                            mEsc = 0;
-                            mVT52.KeypadMode = false;
-                            return;
-                        default:
-                            if ((c >= 32) && (c < 127)) mEsc = 0; // ignore unrecognized escape sequences
-                            return;
                     }
                 }
 
-                private void MoveCursorRel(Int32 dx, Int32 dy)
+                public void MoveCursorRel(Int32 dx, Int32 dy)
                 {
                     Int32 x = mX + dx;
                     if (x < 0) x = 0; else if (x >= COLS) x = COLS - 1;
@@ -944,7 +1087,7 @@ namespace Emulator
                     if ((x != mX) || (y != mY)) MoveCursorAbs(x, y);
                 }
 
-                private void MoveCursorAbs(Int32 x, Int32 y)
+                public void MoveCursorAbs(Int32 x, Int32 y)
                 {
                     if ((x < 0) || (x >= COLS)) throw new ArgumentOutOfRangeException("x");
                     if ((y < 0) || (y >= ROWS)) throw new ArgumentOutOfRangeException("y");
@@ -964,79 +1107,67 @@ namespace Emulator
                     }
                 }
 
-                private void ScrollUp()
+                // this needs to be rewritten to preserve the desired tint even when brightening from zero
+                public void ChangeBrightness(Int32 delta)
                 {
-                    lock (mBitmap)
+                    mBrightness += delta;
+                    if (mBrightness < 5) mBrightness = 5;
+                    else if (mBrightness > 100) mBrightness = 100;
+                    UInt32 old = mOnColor;
+                    mOnColor = Color(mBrightness);
+                    ReplacePixels(old, mOnColor);
+                }
+
+                public void Beep()
+                {
+                    SystemSounds.Beep.Play();
+                }
+
+                // P4 phosphor colors (CIE chromaticity coordinates: x=0.275 y=0.290)
+                private UInt32 Color(Int32 brightness)
+                {
+                    if ((brightness < 0) || (brightness > 100)) throw new ArgumentOutOfRangeException("brightness");
+                    UInt32 c;
+                    switch (brightness)
                     {
-                        for (Int32 y = 0; y < ROWS - 1; y++)
-                        {
-                            for (Int32 x = 0; x < COLS; x++)
-                            {
-                                SetChar(x, y, GetChar(x, y + 1));
-                            }
-                        }
-                        for (Int32 x = 0; x < COLS; x++) SetChar(x, ROWS - 1, 32);
+                        case 100: c = 0xFFE6FFFF; break;
+                        case 95: c = 0xFFDAF5FF; break;
+                        case 90: c = 0xFFCFE8FF; break;
+                        case 85: c = 0xFFC4DCFF; break;
+                        case 80: c = 0xFFB8CFF1; break;
+                        case 75: c = 0xFFADC2E2; break;
+                        case 70: c = 0xFFA2B6D3; break;
+                        case 65: c = 0xFF96A9C5; break;
+                        case 60: c = 0xFF8A9CB6; break;
+                        case 55: c = 0xFF7F8FA7; break;
+                        case 50: c = 0xFF738298; break;
+                        case 45: c = 0xFF677488; break;
+                        case 40: c = 0xFF5B6779; break;
+                        case 35: c = 0xFF4F5A69; break;
+                        case 30: c = 0xFF434C5A; break;
+                        case 25: c = 0xFF363E4A; break;
+                        case 20: c = 0xFF2A3039; break;
+                        case 15: c = 0xFF1D2229; break;
+                        case 10: c = 0xFF0f1318; break;
+                        case 5: c = 0xFF040506; break;
+                        case 0: c = 0xFF000000; break;
+                        default: c = 0; break;
                     }
-                }
-
-                private void ScrollDown()
-                {
-                    lock (mBitmap)
+                    if (mOptGreenFilter)
                     {
-                        for (Int32 y = ROWS - 1; y > 0; y--)
-                        {
-                            for (Int32 x = 0; x < COLS; x++)
-                            {
-                                SetChar(x, y, GetChar(x, y - 1));
-                            }
-                        }
-                        for (Int32 x = 0; x < COLS; x++) SetChar(x, 0, 32);
+                        // green filter passes 100% green, 6.25% blue, 6.25% red
+                        UInt32 b = (c & 0x000000FF) >> 4;
+                        c >>= 8;
+                        UInt32 g = (c & 0x000000FF);
+                        c >>= 8;
+                        UInt32 r = (c & 0x000000FF) >> 4;
+                        c &= 0xFFFFFF00;
+                        c |= r;
+                        c <<= 8;
+                        c |= g;
+                        c <<= 8;
+                        c |= b;
                     }
-                }
-
-                private Byte GetChar(Int32 x, Int32 y)
-                {
-                    if ((x < 0) || (x >= COLS)) throw new ArgumentOutOfRangeException("x");
-                    if ((y < 0) || (y >= ROWS)) throw new ArgumentOutOfRangeException("y");
-                    return mChars[y * COLS + x];
-                }
-
-                private void SetChar(Int32 x, Int32 y, Byte c)
-                {
-                    if ((x < 0) || (x >= COLS)) throw new ArgumentOutOfRangeException("x");
-                    if ((y < 0) || (y >= ROWS)) throw new ArgumentOutOfRangeException("y");
-                    Int32 p = y * COLS + x;
-                    if (mChars[p] == c) return;
-                    mChars[p] = c;
-                    p = c * 8;
-                    if (p >= CharGen.Length) return;
-                    lock (mBitmap)
-                    {
-                        x *= PIXELS_PER_COL;
-                        y *= PIXELS_PER_ROW;
-                        Int32 q = y * COLS * PIXELS_PER_COL + x + 1;
-                        for (Int32 dy = 0; dy < 8; dy++)
-                        {
-                            Byte b = CharGen[p++];
-                            Byte m = 64;
-                            for (Int32 dx = 0; dx < 7; dx++)
-                            {
-                                mPixMap[q + dx] = ((b & m) == 0) ? mOffColor : mOnColor;
-                                m >>= 1;
-                            }
-                            q += COLS * PIXELS_PER_COL * 2;
-                        }
-                        mBitmapDirty = true;
-                    }
-                }
-
-                private UInt32 Color(Byte brightness)
-                {
-                    UInt32 c = 0xFF;
-                    c = (c << 8) | brightness;
-                    c = (c << 8) | brightness;
-                    c = (c << 8) | brightness;
-                    if (mOptGreenFilter) c &= 0xFF00FF00;
                     return c;
                 }
 
@@ -1050,14 +1181,6 @@ namespace Emulator
                     }
                 }
 
-                private void DrawCursor(UInt32 color)
-                {
-                    Int32 x = mX * PIXELS_PER_COL;
-                    Int32 y = mY * PIXELS_PER_ROW + 16;
-                    Int32 p = y * COLS * PIXELS_PER_COL + x;
-                    for (Int32 dx = 0; dx < 9; dx++) mPixMap[p + dx] = color;
-                }
-
                 private void CursorTimer_Callback(Object state)
                 {
                     lock (mBitmap)
@@ -1066,6 +1189,14 @@ namespace Emulator
                         DrawCursor(mCursorVisible ? mOnColor : mOffColor);
                         mBitmapDirty = true;
                     }
+                }
+
+                private void DrawCursor(UInt32 color)
+                {
+                    Int32 x = mX * PIXELS_PER_COL;
+                    Int32 y = mY * PIXELS_PER_ROW + 16;
+                    Int32 p = y * COLS * PIXELS_PER_COL + x;
+                    for (Int32 dx = 0; dx < 9; dx++) mPixMap[p + dx] = color;
                 }
 
                 // VT-52 Character Generator ROM
@@ -1220,7 +1351,7 @@ namespace Emulator
             private void InitIO()
             {
                 mUART = new UART(this);
-                mUART.IO = new IO.Loopback();
+                mUART.IO = new IO.Loopback(null);
                 mCaption = String.Concat("VT52 - ", mUART.IO.ConnectionString);
                 mCaptionDirty = true;
             }
@@ -1309,10 +1440,23 @@ namespace Emulator
                     }
                     set
                     {
+                        if (mIO == value) return;
                         if (mIO != null) mIO.Close();
                         mIO = value;
                         if (mIO != null) mIO.IOEvent += IOEvent;
                     }
+                }
+
+                public Int32 TransmitSpeed
+                {
+                    get { return mSendSpeed; }
+                    set { SetTransmitSpeed(value); }
+                }
+
+                public Int32 ReceiveSpeed
+                {
+                    get { return mRecvSpeed; }
+                    set { SetReceiveSpeed(value); }
                 }
 
                 public void SetTransmitSpeed(Int32 baudRate)
@@ -1526,7 +1670,9 @@ namespace Emulator
 
                 private void IOEvent(Object sender, IOEventArgs e)
                 {
-                    //Log.WriteLine("IOEvent: {0} {1} (0x{2:X2})", e.Type, (Char)e.Value, e.Value);
+#if DEBUG
+                    Log.WriteLine("IOEvent: {0} {1} (0x{2:X2})", e.Type, (Char)e.Value, e.Value);
+#endif
                     switch (e.Type)
                     {
                         case IOEventType.Data:
@@ -1557,7 +1703,7 @@ namespace Emulator
                             break;
                         case IOEventType.Disconnect:
                             lock (mRecvQueue) mRecvQueue.Clear();
-                            IO = new IO.Loopback();
+                            IO = new IO.Loopback(null);
                             mVT52.mCaption = String.Concat("VT52 - ", IO.ConnectionString);
                             mVT52.mCaptionDirty = true;
                             break;
@@ -1570,7 +1716,9 @@ namespace Emulator
                     {
                         TimeSpan t = DateTime.UtcNow.Subtract(mSendClock);
                         Int32 due = (Int32)(t.TotalSeconds * mSendRate + 0.5) - mSendCount;
-                        //Log.WriteLine("SendTimer_Callback: due={0:D0} ct={1:D0}", due, mSendQueue.Count);
+#if DEBUG
+                        Log.WriteLine("SendTimer_Callback: due={0:D0} ct={1:D0}", due, mSendQueue.Count);
+#endif
                         if (due <= 0) return;
                         while ((due-- > 0) && (mSendQueue.Count != 0))
                         {
@@ -1596,7 +1744,9 @@ namespace Emulator
                     {
                         TimeSpan t = DateTime.UtcNow.Subtract(mRecvClock);
                         Int32 due = (Int32)(t.TotalSeconds * mRecvRate + 0.5) - mRecvCount;
-                        //Log.WriteLine("RecvTimer_Callback: due={0:D0} ct={1:D0}", due, mSendQueue.Count);
+#if DEBUG
+                        Log.WriteLine("RecvTimer_Callback: due={0:D0} ct={1:D0}", due, mRecvQueue.Count);
+#endif
                         if (due <= 0) return;
                         while ((due-- > 0) && (mRecvQueue.Count != 0))
                         {

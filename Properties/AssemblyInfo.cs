@@ -1,5 +1,5 @@
 ﻿// AssemblyInfo.cs
-// Copyright (c) 2016, 2017 Kenneth Gober
+// Copyright (c) 2016, 2017, 2019 Kenneth Gober
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -31,7 +31,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Kenneth Gober")]
 [assembly: AssemblyProduct("VT52")]
-[assembly: AssemblyCopyright("Copyright © Kenneth Gober 2016, 2017")]
+[assembly: AssemblyCopyright("Copyright © Kenneth Gober 2016, 2017, 2019")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -50,8 +50,8 @@ using System.Runtime.InteropServices;
 //      Build Number
 //      Revision
 //
-[assembly: AssemblyVersion("1.0.0.4")]
-[assembly: AssemblyFileVersion("1.0.0.4")]
+[assembly: AssemblyVersion("1.0.0.5")]
+[assembly: AssemblyFileVersion("1.0.0.5")]
 // 1.0.0.0 - initial release
 // 1.0.0.1 - fix ConnectionDialog exception when no COM ports present
 //         - fix window size in Windows 10
@@ -64,3 +64,8 @@ using System.Runtime.InteropServices;
 // 1.0.0.4 - add command line options for Raw TCP and Emulator Options
 //         - add version number to About dialog
 //         - improve keyboard handling
+// 1.0.0.5 - back-port improvements from VT05:
+//         - refactor terminal state processing
+//         - improve screen color to more closely match P4 phosphor color
+//         - improve handling of connections
+//         - add GitHub URL to About dialog

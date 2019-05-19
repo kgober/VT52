@@ -48,6 +48,7 @@ namespace Emulator
     //   RFC 1372 - Telnet Remote Flow Control Option
 
     // Future Improvements / To Do
+    // fix hardcoded term type strings, send/receive speeds
     // properly handle incoming SYNCH
     // send GA if we are not in SGA mode (maybe)
     // Binary option (specifically its change to CR handling, see RFC 1123 3.2.7)

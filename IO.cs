@@ -1,5 +1,5 @@
 // IO.cs
-// Copyright (c) 2016, 2017 Kenneth Gober
+// Copyright (c) 2016, 2017, 2019 Kenneth Gober
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -74,6 +74,9 @@ namespace Emulator
         // IOEvent - raised for I/O events
         public abstract event EventHandler IOEvent;
 
+        // Options - the options that were passed to the constructor
+        public abstract String Options { get; }
+
         // ConnectionString - a string that describes the current connection
         public abstract String ConnectionString { get; }
 
@@ -102,13 +105,20 @@ namespace Emulator
         // Loopback - connect terminal to a simulated loopback plug
         public class Loopback : IO
         {
+            private String mOptions;
             private Boolean mBreak;
 
-            public Loopback()
+            public Loopback(String options)
             {
+                mOptions = options;
             }
 
             public override event EventHandler IOEvent;
+
+            public override string Options
+            {
+                get { return mOptions; }
+            }
 
             public override String ConnectionString
             {
@@ -162,11 +172,13 @@ namespace Emulator
         // Serial - connect terminal to a serial (COM) port
         public class Serial : IO
         {
+            private String mOptions;
             private String mPortName;
             private SerialPort mPort;
 
             public Serial(String options)
             {
+                mOptions = options;
                 String[] O = options.Split('|');
                 mPortName = O[0];
                 mPort = new SerialPort(O[0]);
@@ -199,6 +211,11 @@ namespace Emulator
             }
 
             public override event EventHandler IOEvent;
+
+            public override string  Options
+            {
+	            get { return mOptions; }
+            }
 
             public override String ConnectionString
             {
@@ -274,6 +291,7 @@ namespace Emulator
         // Telnet - connect terminal to a host using the telnet protocol
         public class Telnet : IO
         {
+            private String mOptions;
             private String mDestination;
             private String mConnStr;
             private Emulator.Telnet mTelnet;
@@ -281,6 +299,7 @@ namespace Emulator
 
             public Telnet(String options)
             {
+                mOptions = options;
                 String[] O = options.Split('|');
                 mDestination = O[0];
                 mConnStr = String.Concat("Telnet ", mDestination);
@@ -289,6 +308,11 @@ namespace Emulator
             }
 
             public override event EventHandler IOEvent;
+
+            public override string Options
+            {
+                get { return mOptions; }
+            }
 
             public override String ConnectionString
             {
@@ -373,12 +397,14 @@ namespace Emulator
 
         public class RawTCP : IO
         {
+            private String mOptions;
             private String mDestination;
             private String mConnStr;
             private Emulator.RawTCP mRawTCP;
 
             public RawTCP(String options)
             {
+                mOptions = options;
                 String[] O = options.Split('|');
                 mDestination = O[0];
                 mConnStr = String.Concat("TCP ", mDestination);
@@ -387,6 +413,11 @@ namespace Emulator
             }
 
             public override event EventHandler IOEvent;
+
+            public override string Options
+            {
+                get { return mOptions; }
+            }
 
             public override string ConnectionString
             {
