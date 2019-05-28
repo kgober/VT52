@@ -144,5 +144,39 @@ namespace Emulator
                 mTerminal.BitmapDirty = false;
             }
         }
+
+        private void MainWindow_MouseDown(object sender, MouseEventArgs e)
+        {
+#if DEBUG
+            Log.WriteLine("MouseDown: Button={0} XY={1:D0},{2:D0} Loc={3:D0},{4:D0}", e.Button.ToString(), e.X, e.Y, e.Location.X, e.Location.Y);
+#endif
+        }
+
+        private void MainWindow_MouseUp(object sender, MouseEventArgs e)
+        {
+#if DEBUG
+            Log.WriteLine("MouseUp: Button={0} XY={1:D0},{2:D0} Loc={3:D0},{4:D0}", e.Button.ToString(), e.X, e.Y, e.Location.X, e.Location.Y);
+#endif
+            if (e.Button == MouseButtons.Right)
+            {
+                String text = Clipboard.GetText();
+                if ((text == null) || (text.Length == 0)) return;
+                mTerminal.Paste(text);
+            }
+        }
+
+        private void TerminalImage_MouseDown(object sender, MouseEventArgs e)
+        {
+            Int32 px = e.X + (sender as PictureBox).Location.X;
+            Int32 py = e.Y + (sender as PictureBox).Location.Y;
+            this.OnMouseDown(new MouseEventArgs(e.Button, e.Clicks, px, py, e.Delta));
+        }
+
+        private void TerminalImage_MouseUp(object sender, MouseEventArgs e)
+        {
+            Int32 px = e.X + (sender as PictureBox).Location.X;
+            Int32 py = e.Y + (sender as PictureBox).Location.Y;
+            this.OnMouseUp(new MouseEventArgs(e.Button, e.Clicks, px, py, e.Delta));
+        }
     }
 }

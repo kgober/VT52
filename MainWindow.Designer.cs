@@ -45,6 +45,8 @@ namespace Emulator
             this.TerminalImage.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             this.TerminalImage.TabIndex = 0;
             this.TerminalImage.TabStop = false;
+            this.TerminalImage.MouseDown += new System.Windows.Forms.MouseEventHandler(this.TerminalImage_MouseDown);
+            this.TerminalImage.MouseUp += new System.Windows.Forms.MouseEventHandler(this.TerminalImage_MouseUp);
             // 
             // MainWindow
             // 
@@ -58,6 +60,8 @@ namespace Emulator
             this.Name = "MainWindow";
             this.Text = "VT52";
             this.Load += new System.EventHandler(this.MainWindow_Load);
+            this.MouseUp += new System.Windows.Forms.MouseEventHandler(this.MainWindow_MouseUp);
+            this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MainWindow_MouseDown);
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainWindow_FormClosing);
             ((System.ComponentModel.ISupportInitialize)(this.TerminalImage)).EndInit();
             this.ResumeLayout(false);

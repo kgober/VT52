@@ -50,8 +50,8 @@ using System.Runtime.InteropServices;
 //      Build Number
 //      Revision
 //
-[assembly: AssemblyVersion("1.0.0.5")]
-[assembly: AssemblyFileVersion("1.0.0.5")]
+[assembly: AssemblyVersion("1.0.0.6")]
+[assembly: AssemblyFileVersion("1.0.0.6")]
 // 1.0.0.0 - initial release
 // 1.0.0.1 - fix ConnectionDialog exception when no COM ports present
 //         - fix window size in Windows 10
@@ -69,3 +69,4 @@ using System.Runtime.InteropServices;
 //         - improve screen color to more closely match P4 phosphor color
 //         - improve handling of connections
 //         - add GitHub URL to About dialog
+// 1.0.0.6 - allow paste from clipboard (mouse right click)

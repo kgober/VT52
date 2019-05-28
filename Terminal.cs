@@ -1,5 +1,5 @@
 // Terminal.cs
-// Copyright (c) 2016, 2017 Kenneth Gober
+// Copyright (c) 2016, 2017, 2019 Kenneth Gober
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -40,6 +40,9 @@ namespace Emulator
 
         // KeyEvent - called by MainWindow (on UI thread) for keyboard events
         public abstract Boolean KeyEvent(Int32 msgId, IntPtr wParam, IntPtr lParam);
+
+        // Paste - called by MainWindow (on UI thread) to paste from clipboard
+        public abstract void Paste(String text);
 
         // Shutdown - called by MainWindow (on UI thread) on shutdown
         public abstract void Shutdown();
