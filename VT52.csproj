@@ -44,7 +44,7 @@
       <DependentUpon>ConnectionDialog.cs</DependentUpon>
     </Compile>
     <Compile Include="IO.cs" />
-    <Compile Include="Log.cs" />
+    <Compile Include="Debug.cs" />
     <Compile Include="MainWindow.cs">
       <SubType>Form</SubType>
     </Compile>

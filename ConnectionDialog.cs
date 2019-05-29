@@ -197,7 +197,6 @@ namespace Emulator
             }
             catch (Exception ex)
             {
-#if DEBUG
                 String buf = "Exception\r\n";
                 while (ex != null)
                 {
@@ -205,7 +204,6 @@ namespace Emulator
                     ex = ex.InnerException;
                 }
                 MessageBox.Show(buf, "UpdateSerialPortUI()");
-#endif
             }
             if ((!wasOpen) && (P.IsOpen)) P.Close();
             if (((dwSettableParams & SP.BAUD) == 0) || (dwSettableBaud == 0))

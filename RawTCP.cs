@@ -1,5 +1,5 @@
 // RawTCP.cs
-// Copyright (c) 2017 Kenneth Gober
+// Copyright (c) 2017, 2019 Kenneth Gober
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -189,9 +189,7 @@ namespace Emulator
                 Flush();
                 Thread.Sleep(1);
             }
-#if DEBUG
-            Log.WriteLine("Disconnected");
-#endif
+            Debug.WriteLine("Disconnected");
             Flush();
             mSocket.Close();
         }

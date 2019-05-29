@@ -1,5 +1,5 @@
 // TelnetSocket.cs
-// Copyright (c) 2016, 2017 Kenneth Gober
+// Copyright (c) 2016, 2017, 2019 Kenneth Gober
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -148,15 +148,13 @@ namespace Emulator
                     }
                     catch (Exception ex)
                     {
-#if DEBUG
                         String buf = "Flush() Exception:\r\n";
                         while (ex != null)
                         {
                             buf = String.Concat(buf, "\r\n", ex.Message, " [", ex.Source, "]\r\n", ex.StackTrace);
                             ex = ex.InnerException;
                         }
-                        Log.WriteLine(buf);
-#endif
+                        Debug.WriteLine(buf);
                     }
                 }
             }
@@ -165,9 +163,7 @@ namespace Emulator
         // send data bytes, doubling each IAC (255) byte.
         private void Send_Data(Byte[] buffer, Int32 offset, Int32 count)
         {
-#if DEBUG
-            Log.WriteLine("Send data: {0} ({1:D0} bytes)", Encoding.ASCII.GetString(buffer, offset, count), count);
-#endif
+            Debug.WriteLine("Send data: {0} ({1:D0} bytes)", Encoding.ASCII.GetString(buffer, offset, count), count);
             Int32 n = offset + count;
             Int32 p = offset;
             Int32 q = p;
@@ -192,9 +188,7 @@ namespace Emulator
 
         private void Send_IAC(Byte command)
         {
-#if DEBUG
-            Log.WriteLine("Send IAC {0} (255 {1:D0})", (IAC)command, command);
-#endif
+            Debug.WriteLine("Send IAC {0} (255 {1:D0})", (IAC)command, command);
             Byte[] buf = new Byte[2];
             buf[0] = (Byte)IAC.IAC;
             buf[1] = command;
@@ -214,9 +208,7 @@ namespace Emulator
 
         private void Send_IAC(IAC command, Byte option)
         {
-#if DEBUG
-            Log.WriteLine("Send IAC {0} {1} (255 {2:D0} {3:D0})", command, (Telnet.Option)option, (Byte)command, option);
-#endif
+            Debug.WriteLine("Send IAC {0} {1} (255 {2:D0} {3:D0})", command, (Telnet.Option)option, (Byte)command, option);
             Byte[] buf = new Byte[3];
             buf[0] = (Byte)IAC.IAC;
             buf[1] = (Byte)command;
@@ -240,15 +232,13 @@ namespace Emulator
                     }
                     catch (Exception ex)
                     {
-#if DEBUG
                         String buf = "_Send() Exception:\r\n";
                         while (ex != null)
                         {
                             buf = String.Concat(buf, "\r\n", ex.Message, " [", ex.Source, "]\r\n", ex.StackTrace);
                             ex = ex.InnerException;
                         }
-                        Log.WriteLine(buf);
-#endif
+                        Debug.WriteLine(buf);
                     }
                 }
                 while (count-- > 0) mSendBuf[p++] = buffer[offset++];
@@ -281,9 +271,7 @@ namespace Emulator
                 Flush(); // don't sleep without first emptying application send buffer
                 Thread.Sleep(1);
             }
-#if DEBUG
-            Log.WriteLine("Disconnected");
-#endif
+            Debug.WriteLine("Disconnected");
             Flush();
             mSocket.Close();
             lock (mTokenQueue) mTokenQueue.Enqueue(Token.Closed);

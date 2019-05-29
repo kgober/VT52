@@ -235,9 +235,7 @@ namespace Emulator
                 Char c;
                 VK k = MapKey(wParam, lParam);
                 Int32 l = lParam.ToInt32();
-#if DEBUG
-                Log.WriteLine("KeyDown: wParam={0:X8} lParam={1:X8} vk={2} (0x{3:X2}) num={4}", (Int32)wParam, l, k.ToString(), (Int32)k, Console.NumberLock);
-#endif
+                Debug.WriteLine("KeyDown: wParam={0:X8} lParam={1:X8} vk={2} (0x{3:X2}) num={4}", (Int32)wParam, l, k.ToString(), (Int32)k, Console.NumberLock);
 
                 // prevent NumLock key from changing NumLock state by pressing it again
                 if (k == VK.NUMLOCK)
@@ -442,9 +440,7 @@ namespace Emulator
             {
                 VK k = MapKey(wParam, lParam);
                 Int32 l = (Int32)(lParam.ToInt64() & 0x00000000FFFFFFFF);
-#if DEBUG
-                Log.WriteLine("KeyUp: wParam={0:X8} lParam={1:X8} vk={2} (0x{3:X2}) num={4}", (Int32)wParam, l, k.ToString(), (Int32)k, Console.NumberLock);
-#endif
+                Debug.WriteLine("KeyUp: wParam={0:X8} lParam={1:X8} vk={2} (0x{3:X2}) num={4}", (Int32)wParam, l, k.ToString(), (Int32)k, Console.NumberLock);
                 if (mKeys.Contains(k)) mKeys.Remove(k);
 
                 if ((k >= VK.A) && (k <= VK.Z)) return true;
@@ -625,7 +621,7 @@ namespace Emulator
                 try
                 {
                     IO X = new IO.Loopback(options);
-                    String s = String.Concat("VT52 - ", X.ConnectionString);
+                    String s = String.Concat(Program.Name, " - ", X.ConnectionString);
                     if (String.Compare(s, mCaption) != 0)
                     {
                         mCaption = s;
@@ -646,7 +642,7 @@ namespace Emulator
                 try
                 {
                     IO X = new IO.Serial(options);
-                    String s = String.Concat("VT52 - ", X.ConnectionString);
+                    String s = String.Concat(Program.Name, " - ", X.ConnectionString);
                     if (String.Compare(s, mCaption) != 0)
                     {
                         mCaption = s;
@@ -667,7 +663,7 @@ namespace Emulator
                 try
                 {
                     IO X = new IO.Telnet(options);
-                    String s = String.Concat("VT52 - ", X.ConnectionString);
+                    String s = String.Concat(Program.Name, " - ", X.ConnectionString);
                     if (String.Compare(s, mCaption) != 0)
                     {
                         mCaption = s;
@@ -688,7 +684,7 @@ namespace Emulator
                 try
                 {
                     IO X = new IO.RawTCP(options);
-                    String s = String.Concat("VT52 - ", X.ConnectionString);
+                    String s = String.Concat(Program.Name, " - ", X.ConnectionString);
                     if (String.Compare(s, mCaption) != 0)
                     {
                         mCaption = s;
@@ -765,9 +761,7 @@ namespace Emulator
             // called by worker thread
             private void Recv(Byte c)
             {
-#if DEBUG
-                Log.WriteLine("Recv: {0} ({1:D0}/0x{1:X2})", (Char)c, c);
-#endif
+                Debug.WriteLine("Recv: {0} ({1:D0}/0x{1:X2})", (Char)c, c);
                 // if Hold Screen is pausing, divert received chars to silo
                 lock (mSilo)
                 {
@@ -1362,7 +1356,7 @@ namespace Emulator
             {
                 mUART = new UART(this);
                 mUART.IO = new IO.Loopback(null);
-                mCaption = String.Concat("VT52 - ", mUART.IO.ConnectionString);
+                mCaption = String.Concat(Program.Name, " - ", mUART.IO.ConnectionString);
                 mCaptionDirty = true;
             }
 
@@ -1680,9 +1674,7 @@ namespace Emulator
 
                 private void IOEvent(Object sender, IOEventArgs e)
                 {
-#if DEBUG
-                    Log.WriteLine("IOEvent: {0} {1} (0x{2:X2})", e.Type, (Char)e.Value, e.Value);
-#endif
+                    Debug.WriteLine("IOEvent: {0} {1} (0x{2:X2})", e.Type, (Char)e.Value, e.Value);
                     switch (e.Type)
                     {
                         case IOEventType.Data:
@@ -1714,7 +1706,7 @@ namespace Emulator
                         case IOEventType.Disconnect:
                             lock (mRecvQueue) mRecvQueue.Clear();
                             IO = new IO.Loopback(null);
-                            mVT52.mCaption = String.Concat("VT52 - ", IO.ConnectionString);
+                            mVT52.mCaption = String.Concat(Program.Name, " - ", IO.ConnectionString);
                             mVT52.mCaptionDirty = true;
                             break;
                     }
@@ -1726,9 +1718,7 @@ namespace Emulator
                     {
                         TimeSpan t = DateTime.UtcNow.Subtract(mSendClock);
                         Int32 due = (Int32)(t.TotalSeconds * mSendRate + 0.5) - mSendCount;
-#if DEBUG
-                        Log.WriteLine("SendTimer_Callback: due={0:D0} ct={1:D0}", due, mSendQueue.Count);
-#endif
+                        Debug.WriteLine("SendTimer_Callback: due={0:D0} ct={1:D0}", due, mSendQueue.Count);
                         if (due <= 0) return;
                         while ((due-- > 0) && (mSendQueue.Count != 0))
                         {
@@ -1754,9 +1744,7 @@ namespace Emulator
                     {
                         TimeSpan t = DateTime.UtcNow.Subtract(mRecvClock);
                         Int32 due = (Int32)(t.TotalSeconds * mRecvRate + 0.5) - mRecvCount;
-#if DEBUG
-                        Log.WriteLine("RecvTimer_Callback: due={0:D0} ct={1:D0}", due, mRecvQueue.Count);
-#endif
+                        Debug.WriteLine("RecvTimer_Callback: due={0:D0} ct={1:D0}", due, mRecvQueue.Count);
                         if (due <= 0) return;
                         while ((due-- > 0) && (mRecvQueue.Count != 0))
                         {

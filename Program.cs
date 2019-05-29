@@ -1,5 +1,5 @@
 // Program.cs
-// Copyright (c) 2016, 2017 Kenneth Gober
+// Copyright (c) 2016, 2017, 2019 Kenneth Gober
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -33,6 +33,7 @@ namespace Emulator
     static class Program
     {
         private static String[] mArgs;
+        private static String mName;
 
         /// <summary>
         /// The main entry point for the application.
@@ -49,6 +50,12 @@ namespace Emulator
         public static String[] Args
         {
             get { return mArgs; }
+        }
+
+        public static String Name
+        {
+            get { return mName; }
+            set { mName = value; }
         }
     }
 }

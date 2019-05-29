@@ -1,5 +1,5 @@
-// Log.cs
-// Copyright (c) 2016, 2017 Kenneth Gober
+// Debug.cs
+// Copyright (c) 2016, 2017, 2019 Kenneth Gober
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -25,14 +25,15 @@ using System.Text;
 
 namespace Emulator
 {
-    class Log
+    class Debug
     {
         private static Object sLock = new Object();
 
         public static void WriteLine(String output)
         {
+#if DEBUG
             StringBuilder buf = new StringBuilder(output.Length + 12);
-            buf.Append("VT52: ");
+            buf.Append(Program.Name).Append(": ");
             foreach (Char c in output)
             {
                 switch (c)
@@ -75,11 +76,14 @@ namespace Emulator
                 }
             }
             lock (sLock) Trace.WriteLine(buf.ToString());
+#endif
         }
 
         public static void WriteLine(String format, params Object[] args)
         {
+#if DEBUG
             WriteLine(String.Format(format, args));
+#endif
         }
     }
 }

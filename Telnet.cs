@@ -1,5 +1,5 @@
 // Telnet.cs
-// Copyright (c) 2016, 2017 Kenneth Gober
+// Copyright (c) 2016, 2017, 2019 Kenneth Gober
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -648,9 +648,7 @@ namespace Emulator
 
         private Boolean Recv_Data(Token t)
         {
-#if DEBUG
-            Log.WriteLine("Recv data: {0} ({1:D0} bytes)", Encoding.ASCII.GetString(t.mBuf, t.mPtr, t.mLen), t.mLen);
-#endif
+            Debug.WriteLine("Recv data: {0} ({1:D0} bytes)", Encoding.ASCII.GetString(t.mBuf, t.mPtr, t.mLen), t.mLen);
             lock (mRecvQueue)
             {
                 if (mRecvFlush) return false;
@@ -671,9 +669,7 @@ namespace Emulator
         private Boolean Recv_Command(Token t)
         {
             IAC c = (IAC)t[0];
-#if DEBUG
-            Log.WriteLine("Recv IAC {0} ({1:D0})", c, t[0]);
-#endif
+            Debug.WriteLine("Recv IAC {0} ({1:D0})", c, t[0]);
             if ((c == IAC.BRK) && (Receive != null)) Receive(this, new IOEventArgs(IOEventType.Break, 0));
             if ((c == IAC.EOR) && (!Dest(Option.END_OF_RECORD))) c = IAC.NOP;
             // we aren't capable of receiving commands, so ignore them
@@ -842,9 +838,7 @@ namespace Emulator
             Option opt = (Option)o;
             if (t.Type == TokenType.DO)
             {
-#if DEBUG
-                Log.WriteLine("Recv IAC DO {0} ({1:D0})", opt, o);
-#endif
+                Debug.WriteLine("Recv IAC DO {0} ({1:D0})", opt, o);
                 Recv_DO(opt);
                 switch (opt)
                 {
@@ -912,9 +906,7 @@ namespace Emulator
             }
             if (t.Type == TokenType.DONT)
             {
-#if DEBUG
-                Log.WriteLine("Recv IAC DONT {0} ({1:D0})", opt, o);
-#endif
+                Debug.WriteLine("Recv IAC DONT {0} ({1:D0})", opt, o);
                 Recv_DONT(opt);
                 switch (opt)
                 {
@@ -933,9 +925,7 @@ namespace Emulator
             }
             if (t.Type == TokenType.WILL)
             {
-#if DEBUG
-                Log.WriteLine("Recv IAC WILL {0} ({1:D0})", opt, o);
-#endif
+                Debug.WriteLine("Recv IAC WILL {0} ({1:D0})", opt, o);
                 Recv_WILL(opt);
                 switch (opt)
                 {
@@ -965,9 +955,7 @@ namespace Emulator
             }
             if (t.Type == TokenType.WONT)
             {
-#if DEBUG
-                Log.WriteLine("Recv IAC WONT {0} ({1:D0})", opt, o);
-#endif
+                Debug.WriteLine("Recv IAC WONT {0} ({1:D0})", opt, o);
                 Recv_WONT(opt);
                 switch (opt)
                 {
@@ -992,18 +980,14 @@ namespace Emulator
         {
             Byte o = t[0];
             Option opt = (Option)o;
-#if DEBUG
-            Log.WriteLine("Recv IAC SB {0} ({1:D0})", opt, o);
-#endif
+            Debug.WriteLine("Recv IAC SB {0} ({1:D0})", opt, o);
             switch (opt)
             {
                 case Option.STATUS: // 5
                     if (!Self(Option.STATUS)) break;
                     if (t[1] == 1)  // SEND
                     {
-#if DEBUG
-                        Log.WriteLine("Sub-Option STATUS SEND");
-#endif
+                        Debug.WriteLine("Sub-Option STATUS SEND");
                         Byte[] buf = new Byte[(mSelf.Length + mDest.Length) * 2 + 1];
                         Int32 n = 0;
                         buf[n++] = 0;
@@ -1029,9 +1013,7 @@ namespace Emulator
                     if (!Self(Option.TERMINAL_TYPE)) break;
                     if (t[1] == 1)  // SEND
                     {
-#if DEBUG
-                        Log.WriteLine("Sub-Option TERMINAL-TYPE SEND");
-#endif
+                        Debug.WriteLine("Sub-Option TERMINAL-TYPE SEND");
                         if (mTermTypeIndex == mTermTypes.Length)
                         {
                             // send last entry twice to signal end-of-list reached
@@ -1049,9 +1031,7 @@ namespace Emulator
                     if (!Self(Option.TERMINAL_SPEED)) break;
                     if (t[1] == 1)  // SEND
                     {
-#if DEBUG
-                        Log.WriteLine("Sub-Option TERMINAL-SPEED SEND");
-#endif
+                        Debug.WriteLine("Sub-Option TERMINAL-SPEED SEND");
                         mSocket.Write(Token.SB(o, 0, String.Format("{0:D0},{1:D0}", mTermTransmit, mTermReceive)));
                     }
                     break;
@@ -1060,30 +1040,22 @@ namespace Emulator
                     if (!Self(Option.TOGGLE_FLOW_CONTROL)) break;
                     if (t[1] == 0) // OFF
                     {
-#if DEBUG
-                        Log.WriteLine("Sub-Option TOGGLE-FLOW-CONTROL OFF");
-#endif
+                        Debug.WriteLine("Sub-Option TOGGLE-FLOW-CONTROL OFF");
                         mOptFlowEnable = false;
                     }
                     else if (t[1] == 1) // ON
                     {
-#if DEBUG
-                        Log.WriteLine("Sub-Option TOGGLE-FLOW-CONTROL ON");
-#endif
+                        Debug.WriteLine("Sub-Option TOGGLE-FLOW-CONTROL ON");
                         mOptFlowEnable = true;
                     }
                     else if (t[1] == 2) // RESTART-ANY
                     {
-#if DEBUG
-                        Log.WriteLine("Sub-Option TOGGLE-FLOW-CONTROL RESTART-ANY");
-#endif
+                        Debug.WriteLine("Sub-Option TOGGLE-FLOW-CONTROL RESTART-ANY");
                         mOptFlowRestartAny = true;
                     }
                     else if (t[1] == 3) // RESTART-XON
                     {
-#if DEBUG
-                        Log.WriteLine("Sub-Option TOGGLE-FLOW-CONTROL RESTART-XON");
-#endif
+                        Debug.WriteLine("Sub-Option TOGGLE-FLOW-CONTROL RESTART-XON");
                         mOptFlowRestartAny = false;
                     }
                     break;
@@ -1093,9 +1065,7 @@ namespace Emulator
                     if (t[1] == 1)  // MODE mask
                     {
                         LinemodeMode mask = (LinemodeMode)t[2];
-#if DEBUG
-                        Log.WriteLine("Sub-Option LINEMODE MODE {0} ({1:D0})", mask, t[2]);
-#endif
+                        Debug.WriteLine("Sub-Option LINEMODE MODE {0} ({1:D0})", mask, t[2]);
                         // mask & 0x04 = MODE_ACK
                         if ((mask & LinemodeMode.MODE_ACK) != 0)
                         {
@@ -1167,8 +1137,7 @@ namespace Emulator
                     }
                     else if ((t[1] == (Byte)IAC.DO) && (t[2] == 2)) // DO FORWARDMASK mask0 ... mask31
                     {
-#if DEBUG
-                        Log.WriteLine("Sub-Option LINEMODE DO FORWARDMASK");
+                        Debug.WriteLine("Sub-Option LINEMODE DO FORWARDMASK");
                         Int32 p = 2;
                         while (p < t.Length)
                         {
@@ -1176,11 +1145,10 @@ namespace Emulator
                             Byte m = 128;
                             for (Int32 i = 0; i < 8; i++)
                             {
-                                Log.WriteLine("FORWARDMASK {0:D0} = {1}", (p - 2) * 8 + i, ((b & m) == 0) ? "OFF" : "ON");
+                                Debug.WriteLine("FORWARDMASK {0:D0} = {1}", (p - 2) * 8 + i, ((b & m) == 0) ? "OFF" : "ON");
                                 m >>= 1;
                             }
                         }
-#endif
                         Byte[] buf = new Byte[2];
                         buf[0] = (Byte)IAC.WONT;
                         buf[1] = 2;
@@ -1188,21 +1156,15 @@ namespace Emulator
                     }
                     else if ((t[1] == (Byte)IAC.DONT) && (t[2] == 2)) // DONT FORWARDMASK
                     {
-#if DEBUG
-                        Log.WriteLine("Sub-Option LINEMODE DONT FORWARDMASK");
-#endif
+                        Debug.WriteLine("Sub-Option LINEMODE DONT FORWARDMASK");
                     }
                     else if (t[1] == 3) // SLC
                     {
-#if DEBUG
-                        Log.WriteLine("Sub-Option LINEMODE SLC");
-#endif
+                        Debug.WriteLine("Sub-Option LINEMODE SLC");
                         Int32 p = 2;
                         while (p < t.Length)
                         {
-#if DEBUG
-                            Log.WriteLine("SLC {0} {1} {2:D0} ({3:D0} {4:D0} {2:D0})", (SLCfn)t[p], (SLCmod)t[p + 1], t[p + 2], t[p], t[p + 1]);
-#endif
+                            Debug.WriteLine("SLC {0} {1} {2:D0} ({3:D0} {4:D0} {2:D0})", (SLCfn)t[p], (SLCmod)t[p + 1], t[p + 2], t[p], t[p + 1]);
                             p += 3;
                         }
                         Byte[] buf = new Byte[t.Length - 1];
@@ -1247,9 +1209,7 @@ namespace Emulator
                                         slc.ch = 255;
                                         break;
                                 }
-#if DEBUG
-                                Log.WriteLine("SLC Reply {0} {1} {2:D0} ({3:D0} {4:D0} {2:D0})", slc.fn, slc.mod, slc.ch, (Byte)slc.fn, (Byte)slc.mod);
-#endif
+                                Debug.WriteLine("SLC Reply {0} {1} {2:D0} ({3:D0} {4:D0} {2:D0})", slc.fn, slc.mod, slc.ch, (Byte)slc.fn, (Byte)slc.mod);
                                 n += BufWrite(buf, n, (Byte)slc.fn);
                                 n += BufWrite(buf, n, (Byte)slc.mod);
                                 n += BufWrite(buf, n, slc.ch);
@@ -1259,9 +1219,7 @@ namespace Emulator
                             else
                             {
                                 // send ACK if we accept proposed settings
-#if DEBUG
-                                Log.WriteLine("SLC Reply {0} {1} {2:D0} ({3:D0} {4:D0} {2:D0})", slc.fn, slc.mod | SLCmod.ACK, slc.ch, (Byte)slc.fn, (Byte)(slc.mod | SLCmod.ACK));
-#endif
+                                Debug.WriteLine("SLC Reply {0} {1} {2:D0} ({3:D0} {4:D0} {2:D0})", slc.fn, slc.mod | SLCmod.ACK, slc.ch, (Byte)slc.fn, (Byte)(slc.mod | SLCmod.ACK));
                                 n += BufWrite(buf, n, (Byte)slc.fn);
                                 n += BufWrite(buf, n, (Byte)(slc.mod | SLCmod.ACK));
                                 n += BufWrite(buf, n, slc.ch);
@@ -1473,7 +1431,7 @@ namespace Emulator
                 //StringBuilder buf = new StringBuilder();
                 //buf.AppendFormat("Recv token {0} (mPtr={1:D0} mLen={2:D0})", t.Type, t.mPtr, t.mLen);
                 //if (t.mBuf != null) for (Int32 i = 0; i < t.mLen; i++) buf.AppendFormat(" {0:D0}", t.mBuf[t.mPtr + i]);
-                //Log.WriteLine(buf.ToString());
+                //Debug.WriteLine(buf.ToString());
                 switch (t.Type)
                 {
                     case TokenType.Data:
@@ -1598,7 +1556,7 @@ namespace Emulator
             //    case vkEOF: B[1] = (Byte)IAC.EOF; break;
             //    default: throw new ArgumentException("vkCode");
             //}
-            //Log.WriteLine("Terminal sends: IAC {0} ({1:D0})", (IAC)B[1], B[1]);
+            //Debug.WriteLine("Terminal sends: IAC {0} ({1:D0})", (IAC)B[1], B[1]);
             //_Send(B, 0, B.Length);
             //_Flush();
         }
