@@ -3,6 +3,8 @@ This is a VT52 terminal emulator for Windows, written in C#.
 The aim of this project is to accurately reproduce the experience of using a real
 Digital Equipment Corporation (DEC) VT52 terminal, including the look of the screen.
 
+![Screenshot](User%20Man%20Screen%20Text.png)
+
 This program requires the .NET Framework, v2.0 or newer.
 
 Controls:
