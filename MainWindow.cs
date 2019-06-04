@@ -20,7 +20,6 @@
 // SOFTWARE.
 
 using System;
-using System.Reflection;
 using System.Windows.Forms;
 
 namespace Emulator
@@ -35,23 +34,23 @@ namespace Emulator
         public MainWindow()
         {
             Program.Name = "VT52";
+            this.Text = Program.Name;
             InitializeComponent();
         }
 
-        // hooking OnHandleCreated is needed for system menu
         protected override void OnHandleCreated(EventArgs e)
         {
             base.OnHandleCreated(e);
             IntPtr hMenu = Win32.GetSystemMenu(this.Handle, false);
             Win32.AppendMenu(hMenu, MF.SEPARATOR, (UIntPtr)0);
-            Win32.AppendMenu(hMenu, MF.STRING, (UIntPtr)5, "Settings (F5)");
-            Win32.AppendMenu(hMenu, MF.STRING, (UIntPtr)6, "Connection (F6)");
-            Win32.AppendMenu(hMenu, MF.STRING, (UIntPtr)11, "Brightness - (F11)");
-            Win32.AppendMenu(hMenu, MF.STRING, (UIntPtr)12, "Brightness + (F12)");
+            Win32.AppendMenu(hMenu, MF.STRING, (UIntPtr)5, "Settings\tF5");
+            Win32.AppendMenu(hMenu, MF.STRING, (UIntPtr)6, "Connection\tF6");
+            Win32.AppendMenu(hMenu, MF.STRING, (UIntPtr)11, "Brightness -\tF11");
+            Win32.AppendMenu(hMenu, MF.STRING, (UIntPtr)12, "Brightness +\tF12");
+            Win32.AppendMenu(hMenu, MF.SEPARATOR, (UIntPtr)0);
             Win32.AppendMenu(hMenu, MF.STRING, (UIntPtr)99, String.Concat("About ", Program.Name));
         }
 
-        // hooking WndProc is needed to differentiate Enter from Keypad Enter
         protected override void WndProc(ref Message m)
         {
             switch (m.Msg)
@@ -61,49 +60,8 @@ namespace Emulator
                     if (!mTerminal.KeyEvent(m.Msg, m.WParam, m.LParam)) base.WndProc(ref m);
                     break;
                 case 0x0112:    // WM_SYSCOMMAND
-                    switch ((Int32)m.WParam)
-                    {
-                        case 5: // Settings (F5)
-                            if (mTerminal != null)
-                            {
-                                Terminal.VT52 vt = mTerminal as Terminal.VT52;
-                                vt.AskSettings();
-                            }
-                            break;
-                        case 6: // Connection (F6)
-                            if (mTerminal != null)
-                            {
-                                Terminal.VT52 vt = mTerminal as Terminal.VT52;
-                                vt.AskConnection();
-                            }
-                            break;
-                        case 11: // Brightness - (F11)
-                            if (mTerminal != null)
-                            {
-                                Terminal.VT52 vt = mTerminal as Terminal.VT52;
-                                vt.LowerBrightness();
-                            }
-                            break;
-                        case 12: // Brightness + (F12)
-                            if (mTerminal != null)
-                            {
-                                Terminal.VT52 vt = mTerminal as Terminal.VT52;
-                                vt.RaiseBrightness();
-                            }
-                            break;
-                        case 99: // About VT52
-                            String v = Assembly.GetExecutingAssembly().GetName().Version.ToString();
-                            MessageBox.Show(String.Concat(Program.Name, " v", v, "\r\nCopyright © Kenneth Gober 2016, 2017, 2019\r\nhttps://github.com/kgober/VT52"), "About VT52");
-                            break;
-                        default:
-                            base.WndProc(ref m);
-                            break;
-                    }
+                    if (!mTerminal.MenuEvent(m.Msg, m.WParam, m.LParam)) base.WndProc(ref m);
                     break;
-                case 0x0102:    // WM_CHAR
-                case 0x0104:    // WM_SYSKEYDOWN
-                case 0x0105:    // WM_SYSKEYUP
-                case 0x0109:    // WM_UNICHAR
                 default:
                     base.WndProc(ref m);
                     break;

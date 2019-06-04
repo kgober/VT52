@@ -58,7 +58,6 @@ namespace Emulator
             this.Controls.Add(this.TerminalImage);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "MainWindow";
-            this.Text = "VT52";
             this.Load += new System.EventHandler(this.MainWindow_Load);
             this.MouseUp += new System.Windows.Forms.MouseEventHandler(this.MainWindow_MouseUp);
             this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MainWindow_MouseDown);

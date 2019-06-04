@@ -48,7 +48,8 @@ namespace Emulator
     //   RFC 1372 - Telnet Remote Flow Control Option
 
     // Future Improvements / To Do
-    // fix hardcoded term type strings, send/receive speeds
+    // make it more apparent that term type and speed must be set before option negotiation occurs
+    // SetWindowSize may be called any time, make it thread-safe
     // properly handle incoming SYNCH
     // send GA if we are not in SGA mode (maybe)
     // Binary option (specifically its change to CR handling, see RFC 1123 3.2.7)
@@ -98,6 +99,13 @@ namespace Emulator
         private Boolean mRecvFlush;
         private Boolean mAutoFlush;
 
+        private List<String> mTermTypes = new List<String>();
+        private Int32 mTermTypeIndex = 0;
+        private UInt16 mTermWidth = 0;
+        private UInt16 mTermHeight = 0;
+        private Int32 mTermTransmit = 0;
+        private Int32 mTermReceive = 0;
+
         public Telnet()
         {
         }
@@ -121,6 +129,32 @@ namespace Emulator
         public Boolean DataAvailable
         {
             get { return (mRecvQueue.Count != 0); }
+        }
+
+        public void SetTerminalType(params String[] values)
+        {
+            foreach (String s in values) mTermTypes.Add(s);
+        }
+
+        public void SetTerminalSpeed(Int32 receiveBaud, Int32 transmitBaud)
+        {
+            mTermReceive = receiveBaud;
+            mTermTransmit = transmitBaud;
+        }
+
+        public void SetWindowSize(UInt16 width, UInt16 height)
+        {
+            if ((width == mTermWidth) && (height == mTermHeight)) return;
+            mTermWidth = width;
+            mTermHeight = height;
+            if ((mSocket != null) && (Self(Option.NAWS)))
+            {
+                Byte[] buf = new Byte[4];
+                Int32 n = 0;
+                n += BufWrite(buf, n, mTermWidth);
+                n += BufWrite(buf, n, mTermHeight);
+                mSocket.Write(Token.SB((Byte)Option.NAWS, buf, 0, n));
+            }
         }
 
         public void Connect(String destination)
@@ -276,13 +310,6 @@ namespace Emulator
         private Boolean mOptEchoLiteral;
         private Boolean mOptFlowEnable;
         private Boolean mOptFlowRestartAny;
-
-        private UInt16 mTermColumns = 80;
-        private UInt16 mTermRows = 24;
-        private Int32 mTermTransmit = 9600;
-        private Int32 mTermReceive = 9600;
-        private String[] mTermTypes = { "DEC-VT52", "VT52" };
-        private Int32 mTermTypeIndex = 0;
 
         private void Init()
         {
@@ -861,9 +888,22 @@ namespace Emulator
                         {
                             Byte[] buf = new Byte[4];
                             Int32 n = 0;
-                            n += BufWrite(buf, n, mTermColumns);
-                            n += BufWrite(buf, n, mTermRows);
+                            n += BufWrite(buf, n, mTermWidth);
+                            n += BufWrite(buf, n, mTermHeight);
                             mSocket.Write(Token.SB(o, buf, 0, n));
+                        }
+                        break;
+                    case Option.TERMINAL_SPEED: // DO TERMINAL-SPEED (32)
+                        if (mSelf[o] == OptionState.OFF_DO)
+                        {
+                            if ((mTermTransmit > 0) && (mTermReceive > 0))
+                            {
+                                Send_WILL(opt);
+                            }
+                            else
+                            {
+                                Send_WONT(opt);
+                            }
                         }
                         break;
                     case Option.TOGGLE_FLOW_CONTROL: // DO TOGGLE-FLOW-CONTROL (33)
@@ -895,7 +935,6 @@ namespace Emulator
                     case Option.STATUS: // DO STATUS (5)
                     case Option.TERMINAL_TYPE: // DO TERMINAL-TYPE (24)
                     case Option.END_OF_RECORD: // DO END-OF-RECORD (25)
-                    case Option.TERMINAL_SPEED: // DO TERMINAL-SPEED (32)
                         if (mSelf[o] == OptionState.OFF_DO) Send_WILL(opt);
                         break;
                     default:
@@ -1014,7 +1053,11 @@ namespace Emulator
                     if (t[1] == 1)  // SEND
                     {
                         Debug.WriteLine("Sub-Option TERMINAL-TYPE SEND");
-                        if (mTermTypeIndex == mTermTypes.Length)
+                        if (mTermTypes.Count == 0)
+                        {
+                            mSocket.Write(Token.SB(o, 0, "UNKNOWN"));
+                        }
+                        else if (mTermTypeIndex == mTermTypes.Count)
                         {
                             // send last entry twice to signal end-of-list reached
                             mSocket.Write(Token.SB(o, 0, mTermTypes[mTermTypeIndex - 1]));
@@ -1032,7 +1075,7 @@ namespace Emulator
                     if (t[1] == 1)  // SEND
                     {
                         Debug.WriteLine("Sub-Option TERMINAL-SPEED SEND");
-                        mSocket.Write(Token.SB(o, 0, String.Format("{0:D0},{1:D0}", mTermTransmit, mTermReceive)));
+                        mSocket.Write(Token.SB(o, 0, String.Format("{0:D0},{1:D0}", mTermReceive, mTermTransmit)));
                     }
                     break;
 

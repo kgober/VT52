@@ -69,4 +69,8 @@ using System.Runtime.InteropServices;
 //         - improve screen color to more closely match P4 phosphor color
 //         - improve handling of connections
 //         - add GitHub URL to About dialog
-// 1.0.0.6 - allow paste from clipboard (mouse right click)
+// 1.0.0.6 - back-port improvements from VT05:
+//         - allow paste from clipboard (mouse right click)
+//         - move VT52-specific code to VT52.cs
+//         - improve handling of serial port exceptions
+//         - fix hardcoded telnet terminal type/speed/size

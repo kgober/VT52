@@ -26,7 +26,7 @@ using System.Threading;
 
 namespace Emulator
 {
-    // IO - connect emulated VT52 UART to the outside world
+    // IO - connect emulated terminal UART to the outside world
 
     // Future Improvements / To Do
     // don't read bytes from telnet unless ready to display (allows AO to work)
@@ -101,7 +101,7 @@ namespace Emulator
         // Close - called by Terminal to shut down interface
         public abstract void Close();
 
-        
+
         // Loopback - connect terminal to a simulated loopback plug
         public class Loopback : IO
         {
@@ -212,14 +212,15 @@ namespace Emulator
 
             public override event EventHandler IOEvent;
 
-            public override string  Options
+            public override string Options
             {
-	            get { return mOptions; }
+                get { return mOptions; }
             }
 
             public override String ConnectionString
             {
-                get {
+                get
+                {
                     String s = "";
                     switch (mPort.StopBits)
                     {
@@ -297,13 +298,17 @@ namespace Emulator
             private Emulator.Telnet mTelnet;
             private Boolean mBreak;
 
-            public Telnet(String options)
+            public Telnet(String options, Int32 receiveBaud, Int32 transmitBaud, UInt16 termWidth, UInt16 termHeight, params String[] termTypes)
             {
                 mOptions = options;
                 String[] O = options.Split('|');
                 mDestination = O[0];
                 mConnStr = String.Concat("Telnet ", mDestination);
-                mTelnet = new Emulator.Telnet(mDestination);
+                mTelnet = new Emulator.Telnet();
+                mTelnet.SetTerminalSpeed(receiveBaud, transmitBaud);
+                mTelnet.SetWindowSize(termWidth, termHeight);
+                mTelnet.SetTerminalType(termTypes);
+                mTelnet.Connect(mDestination);
                 mTelnet.Receive += Receive;
             }
 

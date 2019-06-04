@@ -381,9 +381,16 @@ namespace Emulator
         {
             if ((name == null) || (name.Length == 0)) return null;
             if (mSerialPorts.ContainsKey(name)) return mSerialPorts[name];
-            SerialPort port = new SerialPort(name);
-            mSerialPorts.Add(name, port);
-            return port;
+            try
+            {
+                SerialPort port = new SerialPort(name);
+                mSerialPorts.Add(name, port);
+                return port;
+            }
+            catch
+            {
+                return null;
+            }
         }
     }
 }

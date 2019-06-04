@@ -47,8 +47,8 @@ namespace Emulator
             this.comboBox5 = new System.Windows.Forms.ComboBox();
             this.checkBox1 = new System.Windows.Forms.CheckBox();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
-            this.radioButton4 = new System.Windows.Forms.RadioButton();
             this.radioButton5 = new System.Windows.Forms.RadioButton();
+            this.radioButton4 = new System.Windows.Forms.RadioButton();
             this.groupBox2.SuspendLayout();
             this.groupBox3.SuspendLayout();
             this.SuspendLayout();
@@ -252,6 +252,16 @@ namespace Emulator
             this.groupBox3.Text = "Options";
             this.groupBox3.Visible = false;
             // 
+            // radioButton5
+            // 
+            this.radioButton5.AutoSize = true;
+            this.radioButton5.Location = new System.Drawing.Point(68, 20);
+            this.radioButton5.Name = "radioButton5";
+            this.radioButton5.Size = new System.Drawing.Size(47, 17);
+            this.radioButton5.TabIndex = 1;
+            this.radioButton5.Text = "Raw";
+            this.radioButton5.UseVisualStyleBackColor = true;
+            // 
             // radioButton4
             // 
             this.radioButton4.AutoSize = true;
@@ -263,16 +273,6 @@ namespace Emulator
             this.radioButton4.TabStop = true;
             this.radioButton4.Text = "Telnet";
             this.radioButton4.UseVisualStyleBackColor = true;
-            // 
-            // radioButton5
-            // 
-            this.radioButton5.AutoSize = true;
-            this.radioButton5.Location = new System.Drawing.Point(68, 20);
-            this.radioButton5.Name = "radioButton5";
-            this.radioButton5.Size = new System.Drawing.Size(47, 17);
-            this.radioButton5.TabIndex = 1;
-            this.radioButton5.Text = "Raw";
-            this.radioButton5.UseVisualStyleBackColor = true;
             // 
             // ConnectionDialog
             // 
@@ -291,8 +291,9 @@ namespace Emulator
             this.Controls.Add(this.groupBox3);
             this.Controls.Add(this.button1);
             this.Controls.Add(this.button2);
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
             this.Name = "ConnectionDialog";
-            this.Text = "VT52 Connection";
+            this.Text = "Connection";
             this.Load += new System.EventHandler(this.ConnectionDialog_Load);
             this.groupBox2.ResumeLayout(false);
             this.groupBox2.PerformLayout();

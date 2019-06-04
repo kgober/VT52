@@ -24,6 +24,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Media;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
 
@@ -219,6 +220,39 @@ namespace Emulator
                         return KeyUp(wParam, lParam);
                     default:
                         return false;
+                }
+            }
+
+            public override Boolean MenuEvent(Int32 msgId, IntPtr wParam, IntPtr lParam)
+            {
+                Debug.WriteLine("MenuEvent: msgId=0x{0:x4} wParam=0x{1:x4} lParam=0x{2:x8}", msgId, (Int32)wParam, (Int32)lParam);
+                if (msgId == 0x0112) // WM_SYSCOMMAND
+                {
+                    switch ((Int32)wParam)
+                    {
+                        case 5: // Settings (F5)
+                            AskSettings();
+                            return true;
+                        case 6: // Connection (F6)
+                            AskConnection();
+                            return true;
+                        case 11: // Brightness - (F11)
+                            LowerBrightness();
+                            return true;
+                        case 12: // Brightness + (F12)
+                            RaiseBrightness();
+                            return true;
+                        case 99: // About
+                            String v = Assembly.GetExecutingAssembly().GetName().Version.ToString();
+                            System.Windows.Forms.MessageBox.Show(String.Concat(Program.Name, " v", v, "\r\nCopyright © Kenneth Gober 2016, 2017, 2019\r\nhttps://github.com/kgober/VT52"), String.Concat("About ", Program.Name));
+                            return true;
+                        default:
+                            return false;
+                    }
+                }
+                else
+                {
+                    return false;
                 }
             }
 
@@ -620,7 +654,7 @@ namespace Emulator
                 if (mUART.IO is IO.Loopback) return mUART.IO;
                 try
                 {
-                    IO X = new IO.Loopback(options);
+                    IO.Loopback X = new IO.Loopback(options);
                     String s = String.Concat(Program.Name, " - ", X.ConnectionString);
                     if (String.Compare(s, mCaption) != 0)
                     {
@@ -641,7 +675,7 @@ namespace Emulator
                 if ((mUART.IO is IO.Serial) && (String.Compare(mUART.IO.Options, options) == 0)) return mUART.IO;
                 try
                 {
-                    IO X = new IO.Serial(options);
+                    IO.Serial X = new IO.Serial(options);
                     String s = String.Concat(Program.Name, " - ", X.ConnectionString);
                     if (String.Compare(s, mCaption) != 0)
                     {
@@ -662,7 +696,7 @@ namespace Emulator
                 if ((mUART.IO is IO.Telnet) && (String.Compare(mUART.IO.Options, options) == 0)) return mUART.IO;
                 try
                 {
-                    IO X = new IO.Telnet(options);
+                    IO.Telnet X = new IO.Telnet(options, mUART.ReceiveSpeed, mUART.TransmitSpeed, Display.COLS, Display.ROWS, "DEC-VT52", "VT52");
                     String s = String.Concat(Program.Name, " - ", X.ConnectionString);
                     if (String.Compare(s, mCaption) != 0)
                     {
@@ -683,7 +717,7 @@ namespace Emulator
                 if ((mUART.IO is IO.RawTCP) && (String.Compare(mUART.IO.Options, options) == 0)) return mUART.IO;
                 try
                 {
-                    IO X = new IO.RawTCP(options);
+                    IO.RawTCP X = new IO.RawTCP(options);
                     String s = String.Concat(Program.Name, " - ", X.ConnectionString);
                     if (String.Compare(s, mCaption) != 0)
                     {

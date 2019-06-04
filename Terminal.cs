@@ -39,7 +39,12 @@ namespace Emulator
         public abstract Boolean CaptionDirty { get; set; }
 
         // KeyEvent - called by MainWindow (on UI thread) for keyboard events
+        //   Returns true if event was handled
         public abstract Boolean KeyEvent(Int32 msgId, IntPtr wParam, IntPtr lParam);
+
+        // MenuEvent - called by MainWindow (on UI thread) for menu events
+        //   Returns true if event was handled
+        public abstract Boolean MenuEvent(Int32 msgId, IntPtr wParam, IntPtr lParam);
 
         // Paste - called by MainWindow (on UI thread) to paste from clipboard
         public abstract void Paste(String text);
