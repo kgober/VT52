@@ -38,6 +38,12 @@ namespace Emulator
             InitializeComponent();
         }
 
+        public Boolean FixedAspectRatio
+        {
+            get { return (TerminalImage.SizeMode != PictureBoxSizeMode.StretchImage); }
+            set { TerminalImage.SizeMode = (value) ? PictureBoxSizeMode.Zoom : PictureBoxSizeMode.StretchImage; }
+        }
+
         protected override void OnHandleCreated(EventArgs e)
         {
             base.OnHandleCreated(e);

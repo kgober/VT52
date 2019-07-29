@@ -33,6 +33,7 @@ namespace Emulator
     static class Program
     {
         private static String[] mArgs;
+        private static MainWindow mWindow;
         private static String mName;
 
         /// <summary>
@@ -44,12 +45,17 @@ namespace Emulator
             mArgs = args;
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new MainWindow());
+            Application.Run(mWindow = new MainWindow());
         }
 
         public static String[] Args
         {
             get { return mArgs; }
+        }
+
+        public static MainWindow Window
+        {
+            get { return mWindow; }
         }
 
         public static String Name

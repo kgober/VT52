@@ -42,7 +42,7 @@ namespace Emulator
             this.TerminalImage.Margin = new System.Windows.Forms.Padding(0);
             this.TerminalImage.Name = "TerminalImage";
             this.TerminalImage.Size = new System.Drawing.Size(720, 480);
-            this.TerminalImage.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.TerminalImage.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.TerminalImage.TabIndex = 0;
             this.TerminalImage.TabStop = false;
             this.TerminalImage.MouseDown += new System.Windows.Forms.MouseEventHandler(this.TerminalImage_MouseDown);

@@ -126,6 +126,22 @@ namespace Emulator
                                             dlgSettings.OptGreenFilter = false;
                                             arg = arg.Substring(2);
                                         }
+                                        else if (arg.StartsWith("d+", StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            mOptStretchDisplay = true;
+                                            Program.Window.FixedAspectRatio = false;
+                                            if (dlgSettings == null) dlgSettings = new SettingsDialog();
+                                            dlgSettings.OptStretchDisplay = true;
+                                            arg = arg.Substring(2);
+                                        }
+                                        else if (arg.StartsWith("d-", StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            mOptStretchDisplay = false;
+                                            Program.Window.FixedAspectRatio = true;
+                                            if (dlgSettings == null) dlgSettings = new SettingsDialog();
+                                            dlgSettings.OptStretchDisplay = false;
+                                            arg = arg.Substring(2);
+                                        }
                                     }
                                     break;
                                 case 'r':
@@ -195,6 +211,7 @@ namespace Emulator
             private volatile Boolean mKeypadMode;   // Alternate Keypad Mode enabled
             private Boolean mOptSwapDelBS;          // swap Delete and Backspace keys
             private Boolean mOptAutoRepeat;         // enable automatic key repeat
+            private Boolean mOptStretchDisplay;     // allow variable aspect ratio
             private SettingsDialog dlgSettings;
             private ConnectionDialog dlgConnection;
 
@@ -591,6 +608,11 @@ namespace Emulator
                 }
                 mOptAutoRepeat = dlgSettings.OptAutoRepeat;
                 mDisplay.GreenFilter = dlgSettings.OptGreenFilter;
+                if (dlgSettings.OptStretchDisplay != mOptStretchDisplay)
+                {
+                    Program.Window.FixedAspectRatio = !dlgSettings.OptStretchDisplay;
+                    mOptStretchDisplay = dlgSettings.OptStretchDisplay;
+                }
 
                 Int32 t = -1;
                 switch (dlgSettings.S1)

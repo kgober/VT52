@@ -50,8 +50,8 @@ using System.Runtime.InteropServices;
 //      Build Number
 //      Revision
 //
-[assembly: AssemblyVersion("1.0.0.6")]
-[assembly: AssemblyFileVersion("1.0.0.6")]
+[assembly: AssemblyVersion("1.0.0.7")]
+[assembly: AssemblyFileVersion("1.0.0.7")]
 // 1.0.0.0 - initial release
 // 1.0.0.1 - fix ConnectionDialog exception when no COM ports present
 //         - fix window size in Windows 10
@@ -74,3 +74,4 @@ using System.Runtime.InteropServices;
 //         - move VT52-specific code to VT52.cs
 //         - improve handling of serial port exceptions
 //         - fix hardcoded telnet terminal type/speed/size
+// 1.0.0.7 - allow aspect ratio to be locked/unlocked (default locked)
