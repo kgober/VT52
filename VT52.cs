@@ -219,6 +219,7 @@ namespace Emulator
             {
                 mKeys = new List<VK>();
                 mCaps = Console.CapsLock;
+                mOptSwapDelBS = true;
             }
 
             public Boolean KeypadMode
