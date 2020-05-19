@@ -1,5 +1,5 @@
 ﻿// AssemblyInfo.cs
-// Copyright (c) 2016, 2017, 2019 Kenneth Gober
+// Copyright (c) 2016, 2017, 2019, 2020 Kenneth Gober
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -50,8 +50,8 @@ using System.Runtime.InteropServices;
 //      Build Number
 //      Revision
 //
-[assembly: AssemblyVersion("1.0.0.8")]
-[assembly: AssemblyFileVersion("1.0.0.8")]
+[assembly: AssemblyVersion("1.0.0.9")]
+[assembly: AssemblyFileVersion("1.0.0.9")]
 // 1.0.0.0 - initial release
 // 1.0.0.1 - fix ConnectionDialog exception when no COM ports present
 //         - fix window size in Windows 10
@@ -76,3 +76,4 @@ using System.Runtime.InteropServices;
 //         - fix hardcoded telnet terminal type/speed/size
 // 1.0.0.7 - allow aspect ratio to be locked/unlocked (default locked)
 // 1.0.0.8 - fix Swap BS / DEL startup setting
+// 1.0.0.9 - enable local echo (S1=2 or S2=A in Settings)

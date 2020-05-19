@@ -1,5 +1,5 @@
 // VT52.cs
-// Copyright (c) 2016, 2017, 2019 Kenneth Gober
+// Copyright (c) 2016, 2017, 2019, 2020 Kenneth Gober
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -43,7 +43,6 @@ namespace Emulator
         // accurate bell sound
         // copy key (incl. ESC Z report of printer support) (home or pgup)
         // repeat key (alt)
-        // local copy (internal UART loopback)
         // accurate behavior for invalid S1/S2 switch combinations
         // accurate keyboard rollover
         // add command line option for serial connection
@@ -646,6 +645,7 @@ namespace Emulator
                 if (r == -1) return;
                 SetTransmitSpeed(t);
                 SetReceiveSpeed(r);
+                SetLocalEcho((dlgSettings.S1 == '2') || (dlgSettings.S2 == 'A'));
                 SetTransmitParity(dlgSettings.Parity);
             }
 
@@ -1453,6 +1453,11 @@ namespace Emulator
                 mUART.SetTransmitParity(parity);
             }
 
+            private void SetLocalEcho(Boolean enabled)
+            {
+                mUART.SetLocalEcho(enabled);
+            }
+
             private void Send(Byte data)
             {
                 mUART.Send(data);
@@ -1479,6 +1484,7 @@ namespace Emulator
                 private Int32 mRecvCount;       // bytes received since clock
                 private Boolean mRecvBreak;     // receive break state
                 private System.IO.Ports.Parity mParity;
+                private Boolean mLocalEcho;     // UART loopback
                 private IO mIO;                 // I/O interface
 
                 public UART(VT52 parent)
@@ -1665,6 +1671,11 @@ namespace Emulator
                     mParity = parity;
                 }
 
+                public void SetLocalEcho(Boolean enabled)
+                {
+                    mLocalEcho = enabled;
+                }
+
                 private Int32 NybbleParity(Int32 data)
                 {
                     switch (data & 0x0F)
@@ -1719,6 +1730,7 @@ namespace Emulator
                         }
                         if ((!mSendBusy) && (!mIO.DelaySend)) mIO.Send(data);
                         else mSendQueue.Enqueue(data);
+                        if (mLocalEcho && !(mIO is IO.Loopback)) IOEvent(this, new IOEventArgs(IOEventType.Data, data));
                         if (!mSendBusy)
                         {
                             mSendBusy = true;
